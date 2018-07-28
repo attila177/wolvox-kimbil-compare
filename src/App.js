@@ -20,6 +20,18 @@ const KIMBIL_ADI_INDEX = 0;
 const KIMBIL_SOYADI_INDEX = 7;
 const KIMBIL_GIRIS_INDEX = 4;
 
+const output_debug = false;
+const debug = () => {
+  if (!output_debug) {
+    return;
+  }
+  let toLog = "";
+  for (let arg of arguments) {
+    toLog += ((typeof arg === "string") ? arg : JSON.stringify(arg));
+  }
+  console.log(toLog);
+};
+
 const extractCsv = (raw) => {
   const lines = raw.split("\n");
   const result = [];
@@ -54,7 +66,7 @@ const wolvoxCsvToData = (line) => {
     commonStringSimplify(line[WOLVOX_SOYADI_INDEX]),
     commonStringSimplify(line[WOLVOX_GIRIS_INDEX]),
     line[WOLVOX_CIKIS_INDEX]);
-  console.log("wolvox to data", result);
+  debug("wolvox to data", result);
   return result;
 };
 
@@ -66,7 +78,7 @@ const kimbilCsvToData = (line) => {
     commonStringConvert(line[KIMBIL_SOYADI_INDEX]),
     commonStringSimplify(line[KIMBIL_SOYADI_INDEX]),
     line[KIMBIL_GIRIS_INDEX], "-");
-  console.log("kimbil to data", result);
+  debug("kimbil to data", result);
   return result;
 };
 
@@ -131,22 +143,22 @@ const convertOneCsvData = (that, key) => {
   if (raw) {
     that.fullData[key] = [];
     const data = extractCsv(raw);
-    console.log(key, "raw", data);
+    debug(key, "raw", data);
     let isFirst = true;
     for (let entry of data) {
       if (isFirst) {
         isFirst = false;
-        console.log("Skipping first", entry);
+        debug("Skipping first", entry);
         continue;
       }
       if (entry.length < 2) {
-        console.log("Skipping empty", entry);
+        debug("Skipping empty", entry);
         continue;
       }
       const compiled = csvToDataFunctions[key](entry);
       that.fullData[key].push(compiled);
     }
-    console.log(key, "full", that.fullData[key]);
+    debug(key, "full", that.fullData[key]);
     that.fullData[key].sort((a, b) => {
       // soyadi, adi
       if (a.soyadi_simple === b.soyadi_simple) {
@@ -173,7 +185,7 @@ const compareEntries = (baseEntry, otherEntry) => {
   const adi = resemble(baseEntry.adi_simple, otherEntry.adi_simple);
   const soyadi = resemble(baseEntry.soyadi_simple, otherEntry.soyadi_simple);
   if (oda && adi && soyadi) {
-    console.log("Found match:", baseEntry, otherEntry);
+    debug("Found match:", baseEntry, otherEntry);
     return true;
   }
   if (oda || adi || soyadi) {
@@ -212,8 +224,6 @@ const compareOne = (that, key, otherKey) => {
       trs += `<tr${entry.notInOther ? " style=\"background-color:red;\"" : ""}><td>${entry.odaNo}</td><td>${entry.adi}</td><td>${entry.soyadi}</td></tr>`;
     }
     const table = `<table><tbody>${trs}</tbody></table>`;
-    console.log("Holder", holder);
-    console.log("Table", table);
     holder.innerHTML = table;
   }
 };
