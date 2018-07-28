@@ -27,6 +27,10 @@
   to { transform: rotate(360deg); }
 }
 
-table {
+.full {
   width:100%;
+}
+
+.holder {
+  vertical-align: top;
 }

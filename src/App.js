@@ -2,6 +2,10 @@ import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
 
+const EXISTS_HERE_BUT_NOT_OTHER_PREFIX = "exists-here-but-not-other-";
+const DATA_ENTRY_AMOUNT_PREFIX = "data-entry-amount-";
+const DATA_HOLDER_DIV_PREFIX = "data-holder-";
+
 const KEY_CSV_WOLVOX = "csv-wolvox";
 const KEY_CSV_KIMBIL = "csv-kimbil";
 
@@ -9,7 +13,7 @@ const WOLVOX_ODA_NO_INDEX = 0;
 const WOLVOX_ADI_INDEX = 4;
 const WOLVOX_SOYADI_INDEX = 5;
 const WOLVOX_GIRIS_INDEX = 8;
-const WOLVOX_CIKIS_INDEX = 9;
+const WOLVOX_CIKIS_INDEX = 10;
 
 const KIMBIL_ODA_NO_INDEX = 9;
 const KIMBIL_ADI_INDEX = 0;
@@ -40,13 +44,20 @@ const wolvoxCsvToData = (line) => {
   if (line.length < 2) {
     return;
   }
-  const result = toData(line[WOLVOX_ODA_NO_INDEX], line[WOLVOX_ADI_INDEX], line[WOLVOX_SOYADI_INDEX], line[WOLVOX_GIRIS_INDEX], line[WOLVOX_CIKIS_INDEX]);
+  const result = toData(line[WOLVOX_ODA_NO_INDEX],
+    wolvoxStringConvert(line[WOLVOX_ADI_INDEX]),
+    wolvoxStringConvert(line[WOLVOX_SOYADI_INDEX]),
+    line[WOLVOX_GIRIS_INDEX],
+    line[WOLVOX_CIKIS_INDEX]);
   console.log("wolvox to data", result);
   return result;
 };
 
 const kimbilCsvToData = (line) => {
-  const result = toData(line[KIMBIL_ODA_NO_INDEX], line[KIMBIL_ADI_INDEX], line[KIMBIL_SOYADI_INDEX], line[KIMBIL_GIRIS_INDEX], "-");
+  const result = toData(line[KIMBIL_ODA_NO_INDEX],
+    kimbilStringConvert(line[KIMBIL_ADI_INDEX]),
+    kimbilStringConvert(line[KIMBIL_SOYADI_INDEX]),
+    line[KIMBIL_GIRIS_INDEX], "-");
   console.log("kimbil to data", result);
   return result;
 };
@@ -54,6 +65,47 @@ const kimbilCsvToData = (line) => {
 const csvToDataFunctions = {};
 csvToDataFunctions[KEY_CSV_KIMBIL] = kimbilCsvToData;
 csvToDataFunctions[KEY_CSV_WOLVOX] = wolvoxCsvToData;
+
+const replaceAll = (input, shouldDisappear, shouldAppear) => {
+  let output = input;
+  while (output.indexOf(shouldDisappear) >= 0) {
+    output = output.replace(shouldDisappear, shouldAppear);
+  }
+  return output;
+};
+
+const contains = (container, contained) => {
+  return container.indexOf(contained) >= 0;
+};
+
+const commonStringConvert = (s) => {
+  s = replaceAll(s, " ", "");
+  s = replaceAll(s, "İ", "I");
+  return s;
+};
+
+const wolvoxStringConvert = (s) => {
+  s = replaceAll(s, "Ý", "İ");
+  s = replaceAll(s, "Þ", "Ş");
+  s = replaceAll(s, "Ð", "Ğ");
+  s = commonStringConvert(s);
+  return s;
+};
+
+const kimbilStringConvert = (s) => {
+  s = replaceAll(s, "˜", "İ");
+  s = replaceAll(s, "ž", "Ş");
+  s = replaceAll(s, "¦", "Ğ");
+  s = replaceAll(s, "š", "Ü");
+  s = replaceAll(s, "™", 'Ö');
+  s = replaceAll(s, "€", 'Ç');
+  s = commonStringConvert(s);
+  return s;
+};
+
+const stringConvertFunctions = {};
+stringConvertFunctions[KEY_CSV_KIMBIL] = kimbilStringConvert;
+stringConvertFunctions[KEY_CSV_WOLVOX] = wolvoxStringConvert;
 
 const convertOneCsvData = (that, key) => {
   const raw = that.rawData[key];
@@ -77,22 +129,75 @@ const convertOneCsvData = (that, key) => {
     }
     console.log(key, "full", that.fullData[key]);
     that.fullData[key].sort((a, b) => {
-      // oda no, soyadi, adi
-      if (a.odaNo === b.odaNo) {
-        if (a.soyadi === b.soyadi) {
-          return a.adi > b.adi;
-        }
-        return a.soyadi > b.soyadi;
+      // soyadi, adi
+      if (a.soyadi === b.soyadi) {
+        return a.adi > b.adi;
       }
-      return a.odaNo > b.odaNo;
+      return a.soyadi > b.soyadi;
     });
     console.log(key, "full sorted", that.fullData[key]);
+    document.getElementById(DATA_ENTRY_AMOUNT_PREFIX + key).textContent = `${key} has ${that.fullData[key].length} entries!`;
+
+
   }
 };
 
 const convertAllCsvData = (that) => {
   convertOneCsvData(that, KEY_CSV_KIMBIL);
   convertOneCsvData(that, KEY_CSV_WOLVOX);
+};
+
+const resemble = (s1, s2) => {
+  return s1 === s2 || contains(s1, s2) || contains(s2, s1);
+};
+
+const compareEntries = (baseEntry, otherEntry) => {
+  if (resemble(baseEntry.odaNo, otherEntry.odaNo) && resemble(baseEntry.adi, otherEntry.adi) && resemble(baseEntry.soyadi, otherEntry.soyadi)) {
+    console.log("Found match:", baseEntry, otherEntry);
+    return true;
+  }
+  return false;
+};
+
+const compareOne = (that, key, otherKey) => {
+  const baseData = that.fullData[key];
+  const otherData = that.fullData[otherKey];
+
+  if (baseData && otherData) {
+    const notInOther = [];
+    for (let baseEntry of baseData) {
+      let found = false;
+      for (let otherEntry of otherData) {
+        if (compareEntries(baseEntry, otherEntry)) {
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        notInOther.push(baseEntry);
+        baseEntry.notInOther = true;
+      } else {
+        baseEntry.notInOther = false;
+      }
+    }
+    document.getElementById(EXISTS_HERE_BUT_NOT_OTHER_PREFIX + key).textContent = `${key} checked!`;
+    console.log("not in other ", key, notInOther.length, "of", baseData.length);
+
+    const holder = document.getElementById(DATA_HOLDER_DIV_PREFIX + key);
+    let trs = "";
+    for (let entry of that.fullData[key]) {
+      trs += `<tr${entry.notInOther ? " style=\"background-color:red;\"" : ""}><td>${entry.odaNo}</td><td>${entry.adi}</td><td>${entry.soyadi}</td></tr>`;
+    }
+    const table = `<table><tbody>${trs}</tbody></table>`;
+    console.log("Holder", holder);
+    console.log("Table", table);
+    holder.innerHTML = table;
+  }
+};
+
+const compareAllCsvData = (that) => {
+  compareOne(that, KEY_CSV_KIMBIL, KEY_CSV_WOLVOX);
+  compareOne(that, KEY_CSV_WOLVOX, KEY_CSV_KIMBIL);
 };
 
 class App extends Component {
@@ -119,13 +224,23 @@ class App extends Component {
         rawData[id] = evt.target.result;
         document.getElementById(`{id}-present`).textContent = "Loaded.";
         convertAllCsvData(that);
+        compareAllCsvData(that);
       }
       reader.onerror = function (evt) {
         console.log("error", evt);
       }
     };
     const dataIsPresent = <div id={`{id}-present`} ></div >;
-    return <div>{id}: <br /><input type="file" id={id} onChange={read} /> {dataIsPresent}</div>;
+    return <div>{id}: <br /><input type="file" id={id} onChange={read} /> {dataIsPresent} <br />
+      <span id={`${DATA_ENTRY_AMOUNT_PREFIX}${id}`}></span></div>;
+  }
+
+  existsHereButNotOther(key) {
+    return <div id={`${EXISTS_HERE_BUT_NOT_OTHER_PREFIX}${key}`}></div>;
+  }
+
+  dataHolderDiv(key) {
+    return <div className="holder" id={`${DATA_HOLDER_DIV_PREFIX}${key}`}></div>;
   }
 
   render() {
@@ -135,11 +250,21 @@ class App extends Component {
           <img src={logo} className="App-logo" alt="logo" />
           <h1 className="App-title">Wolvox Kimbil Compare</h1>
         </header>
-        <table>
-          <tr>
-            <td>{this.fileReader(KEY_CSV_WOLVOX)}</td>
-            <td>{this.fileReader(KEY_CSV_KIMBIL)}</td>
-          </tr>
+        <table className="full">
+          <tbody>
+            <tr>
+              <td>{this.fileReader(KEY_CSV_WOLVOX)}</td>
+              <td>{this.fileReader(KEY_CSV_KIMBIL)}</td>
+            </tr>
+            <tr>
+              <td>{this.existsHereButNotOther(KEY_CSV_WOLVOX)}</td>
+              <td>{this.existsHereButNotOther(KEY_CSV_KIMBIL)}</td>
+            </tr>
+            <tr>
+              <td>{this.dataHolderDiv(KEY_CSV_WOLVOX)}</td>
+              <td>{this.dataHolderDiv(KEY_CSV_KIMBIL)}</td>
+            </tr>
+          </tbody>
         </table>
       </div>
     );
