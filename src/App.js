@@ -36,7 +36,7 @@ const toData = (odaNo, adi, soyadi, giris, cikis) => {
   };
 };
 
-const wolvoxToData = (line) => {
+const wolvoxCsvToData = (line) => {
   if (line.length < 2) {
     return;
   }
@@ -45,17 +45,17 @@ const wolvoxToData = (line) => {
   return result;
 };
 
-const kimbilToData = (line) => {
+const kimbilCsvToData = (line) => {
   const result = toData(line[KIMBIL_ODA_NO_INDEX], line[KIMBIL_ADI_INDEX], line[KIMBIL_SOYADI_INDEX], line[KIMBIL_GIRIS_INDEX], "-");
   console.log("kimbil to data", result);
   return result;
 };
 
-const toDataFunctions = {};
-toDataFunctions[KEY_CSV_KIMBIL] = kimbilToData;
-toDataFunctions[KEY_CSV_WOLVOX] = wolvoxToData;
+const csvToDataFunctions = {};
+csvToDataFunctions[KEY_CSV_KIMBIL] = kimbilCsvToData;
+csvToDataFunctions[KEY_CSV_WOLVOX] = wolvoxCsvToData;
 
-const handleData = (that, key) => {
+const convertOneCsvData = (that, key) => {
   const raw = that.rawData[key];
   if (raw) {
     that.fullData[key] = [];
@@ -72,7 +72,7 @@ const handleData = (that, key) => {
         console.log("Skipping empty", entry);
         continue;
       }
-      const compiled = toDataFunctions[key](entry);
+      const compiled = csvToDataFunctions[key](entry);
       that.fullData[key].push(compiled);
     }
     console.log(key, "full", that.fullData[key]);
@@ -90,9 +90,9 @@ const handleData = (that, key) => {
   }
 };
 
-const convertCsvData = (that) => {
-  handleData(that, KEY_CSV_KIMBIL);
-  handleData(that, KEY_CSV_WOLVOX);
+const convertAllCsvData = (that) => {
+  convertOneCsvData(that, KEY_CSV_KIMBIL);
+  convertOneCsvData(that, KEY_CSV_WOLVOX);
 };
 
 class App extends Component {
@@ -118,7 +118,7 @@ class App extends Component {
         console.log("Read", evt.target.result);
         rawData[id] = evt.target.result;
         document.getElementById(`{id}-present`).textContent = "Loaded.";
-        convertCsvData(that);
+        convertAllCsvData(that);
       }
       reader.onerror = function (evt) {
         console.log("error", evt);
