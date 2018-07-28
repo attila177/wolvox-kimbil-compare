@@ -44,7 +44,8 @@ const wolvoxCsvToData = (line) => {
   if (line.length < 2) {
     return;
   }
-  const result = toData(line[WOLVOX_ODA_NO_INDEX],
+  const result = toData(
+    wolvoxStringConvert(line[WOLVOX_ODA_NO_INDEX] + ""),
     wolvoxStringConvert(line[WOLVOX_ADI_INDEX]),
     wolvoxStringConvert(line[WOLVOX_SOYADI_INDEX]),
     line[WOLVOX_GIRIS_INDEX],
@@ -54,7 +55,8 @@ const wolvoxCsvToData = (line) => {
 };
 
 const kimbilCsvToData = (line) => {
-  const result = toData(line[KIMBIL_ODA_NO_INDEX],
+  const result = toData(
+    kimbilStringConvert(line[KIMBIL_ODA_NO_INDEX] + ""),
     kimbilStringConvert(line[KIMBIL_ADI_INDEX]),
     kimbilStringConvert(line[KIMBIL_SOYADI_INDEX]),
     line[KIMBIL_GIRIS_INDEX], "-");
@@ -80,6 +82,8 @@ const contains = (container, contained) => {
 
 const commonStringConvert = (s) => {
   s = replaceAll(s, " ", "");
+  s = replaceAll(s, "�", "_");
+  s = replaceAll(s, "\r", "");
   return s;
 };
 
@@ -151,9 +155,15 @@ const resemble = (s1, s2) => {
 };
 
 const compareEntries = (baseEntry, otherEntry) => {
-  if (resemble(baseEntry.odaNo, otherEntry.odaNo) && resemble(baseEntry.adi, otherEntry.adi) && resemble(baseEntry.soyadi, otherEntry.soyadi)) {
+  const oda = resemble(baseEntry.odaNo, otherEntry.odaNo);
+  const adi = resemble(baseEntry.adi, otherEntry.adi);
+  const soyadi = resemble(baseEntry.soyadi, otherEntry.soyadi);
+  if (oda && adi && soyadi) {
     console.log("Found match:", baseEntry, otherEntry);
     return true;
+  }
+  if (oda || adi || soyadi) {
+    // console.log("Partial match:", baseEntry, otherEntry, oda, adi, soyadi);
   }
   return false;
 };
