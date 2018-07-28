@@ -76,6 +76,17 @@ const handleData = (that, key) => {
       that.fullData[key].push(compiled);
     }
     console.log(key, "full", that.fullData[key]);
+    that.fullData[key].sort((a, b) => {
+      // oda no, soyadi, adi
+      if (a.odaNo === b.odaNo) {
+        if (a.soyadi === b.soyadi) {
+          return a.adi > b.adi;
+        }
+        return a.soyadi > b.soyadi;
+      }
+      return a.odaNo > b.odaNo;
+    });
+    console.log(key, "full sorted", that.fullData[key]);
   }
 };
 
