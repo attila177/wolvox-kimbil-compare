@@ -34,3 +34,7 @@
 .holder {
   vertical-align: top;
 }
+
+.red {
+  background-color: red;
+}

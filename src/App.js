@@ -2,9 +2,9 @@ import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
 
-const EXISTS_HERE_BUT_NOT_OTHER_PREFIX = "exists-here-but-not-other-";
 const DATA_ENTRY_AMOUNT_PREFIX = "data-entry-amount-";
 const DATA_HOLDER_DIV_PREFIX = "data-holder-";
+const VALIDATION_ERROR_HOLDER = "validation-error-holder";
 
 const KEY_CSV_WOLVOX = "csv-wolvox";
 const KEY_CSV_KIMBIL = "csv-kimbil";
@@ -86,6 +86,54 @@ const csvToDataFunctions = {};
 csvToDataFunctions[KEY_CSV_KIMBIL] = kimbilCsvToData;
 csvToDataFunctions[KEY_CSV_WOLVOX] = wolvoxCsvToData;
 
+const printValidationError = (key, msg) => {
+  const oldMsg = document.getElementById(VALIDATION_ERROR_HOLDER + key).innerHTML;
+  console.warn("validation error", key, msg);
+  document.getElementById(VALIDATION_ERROR_HOLDER + key).innerHTML = oldMsg + " <br> " + msg;
+};
+
+const resetValidationError = (key) => {
+  document.getElementById(VALIDATION_ERROR_HOLDER + key).innerHTML = "";
+};
+
+const kimbilCsvRawCsvValidationFunction = (lines) => {
+  console.log("Validating kimbil raw csv", lines);
+  let err = false;
+  resetValidationError(KEY_CSV_KIMBIL);
+  if (lines[0][0] !== "Adi") {
+    printValidationError(KEY_CSV_KIMBIL, `CSV file uploaded for kimbil is not valid: First row should be 'Adi', but is '${lines[0][0]}'!!`);
+    err = true;
+  }
+  if (lines[0].length !== 10) {
+    printValidationError(KEY_CSV_KIMBIL, `CSV file uploaded for kimbil is not valid: There should be 10 columns, but there are ${lines[0].length}!`);
+    err = true;
+  }
+  if (!err) {
+    resetValidationError(KEY_CSV_KIMBIL);
+  }
+};
+
+const wolvoxCsvRawCsvValidationFunction = (lines) => {
+  console.log("Validating wolvox raw csv", lines);
+  let err = false;
+  resetValidationError(KEY_CSV_WOLVOX);
+  if (lines[0][0] !== "Oda No") {
+    printValidationError(KEY_CSV_WOLVOX, `CSV file uploaded for Wolvox is not valid: First row should be 'Oda No', but is '${lines[0][0]}'!`);
+    err = true;
+  }
+  if (lines[0].length !== 65) {
+    printValidationError(KEY_CSV_WOLVOX, `CSV file uploaded for Wolvox is not valid: There should be 65 columns, but there are ${lines[0].length}!`);
+    err = true;
+  }
+  if (!err) {
+    resetValidationError(KEY_CSV_WOLVOX);
+  }
+};
+
+const csvRawCsvValidationFunctions = {};
+csvRawCsvValidationFunctions[KEY_CSV_KIMBIL] = kimbilCsvRawCsvValidationFunction;
+csvRawCsvValidationFunctions[KEY_CSV_WOLVOX] = wolvoxCsvRawCsvValidationFunction;
+
 const replaceAll = (input, shouldDisappear, shouldAppear) => {
   let output = input;
   while (output.indexOf(shouldDisappear) >= 0) {
@@ -147,6 +195,7 @@ const convertOneCsvData = (that, key) => {
   if (raw) {
     that.fullData[key] = [];
     const data = extractCsv(raw);
+    csvRawCsvValidationFunctions[key](data);
     debug(key, "raw", data);
     let isFirst = true;
     for (let entry of data) {
@@ -219,7 +268,6 @@ const compareOne = (that, key, otherKey) => {
         baseEntry.notInOther = false;
       }
     }
-    document.getElementById(EXISTS_HERE_BUT_NOT_OTHER_PREFIX + key).textContent = `${key} checked!`;
     console.log("not in other ", key, notInOther.length, "of", baseData.length);
 
     const holder = document.getElementById(DATA_HOLDER_DIV_PREFIX + key);
@@ -253,11 +301,11 @@ class App extends Component {
     const that = this;
     const read = (inPar1) => {
       const file = inPar1.target.files[0];
-      console.log("in2", file);
+      console.log("File metadata", file);
       const reader = new FileReader();
       reader.readAsText(file, 'ISO-8859-1');
       reader.onload = function (evt) {
-        console.log("Read", evt.target.result);
+        console.log("Read file:", evt.target.result);
         rawData[id] = evt.target.result;
         document.getElementById(`{id}-present`).textContent = "Loaded.";
         convertAllCsvData(that);
@@ -272,10 +320,6 @@ class App extends Component {
       <span id={`${DATA_ENTRY_AMOUNT_PREFIX}${id}`}></span></div>;
   }
 
-  existsHereButNotOther(key) {
-    return <div id={`${EXISTS_HERE_BUT_NOT_OTHER_PREFIX}${key}`}></div>;
-  }
-
   dataHolderDiv(key) {
     return <div className="holder" id={`${DATA_HOLDER_DIV_PREFIX}${key}`}></div>;
   }
@@ -287,15 +331,13 @@ class App extends Component {
           <img src={logo} className="App-logo" alt="logo" />
           <h1 className="App-title">Wolvox Kimbil Compare</h1>
         </header>
+        <div className="red" id={`${VALIDATION_ERROR_HOLDER}${KEY_CSV_WOLVOX}`}></div>
+        <div className="red" id={`${VALIDATION_ERROR_HOLDER}${KEY_CSV_KIMBIL}`}></div>
         <table className="full">
           <tbody>
             <tr>
               <td>{this.fileReader(KEY_CSV_WOLVOX)}</td>
               <td>{this.fileReader(KEY_CSV_KIMBIL)}</td>
-            </tr>
-            <tr>
-              <td>{this.existsHereButNotOther(KEY_CSV_WOLVOX)}</td>
-              <td>{this.existsHereButNotOther(KEY_CSV_KIMBIL)}</td>
             </tr>
             <tr>
               <td>{this.dataHolderDiv(KEY_CSV_WOLVOX)}</td>
