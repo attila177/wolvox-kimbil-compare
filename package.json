@@ -1,7 +1,26 @@
 {
   "name": "wolvox-kimbil-compare",
-  "version": "0.1.0",
-  "private": true,
+  "version": "1.0.0",
+  "description": "Compares csv exports of the Wolvox ERP system for hotels and the Kimbil system for Turkish hotels",
+  "keywords": [
+    "csv",
+    "export",
+    "akinsoft",
+    "wolvox",
+    "kimbil",
+    "turkish",
+    "hotel",
+    "kimlik",
+    "compare",
+    "comparison",
+    "diff"
+  ],
+  "private": false,
+  "bugs": "https://github.com/attilavt/wolvox-kimbil-compare/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/attilavt/wolvox-kimbil-compare"
+  },
   "dependencies": {
     "react": "^16.4.1",
     "react-dom": "^16.4.1",
@@ -13,5 +32,5 @@
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
   },
-  "homepage": "https://www.altincamp.com/wkc"
+  "homepage": "/wkc"
 }
