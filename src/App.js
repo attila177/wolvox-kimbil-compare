@@ -30,13 +30,15 @@ const extractCsv = (raw) => {
   return result;
 };
 
-const toData = (odaNo, adi, soyadi, giris, cikis) => {
+const toData = (odaNo, adi, adi_simple, soyadi, soyadi_simple, giris, cikis) => {
   return {
     odaNo: odaNo,
     adi: adi,
     soyadi: soyadi,
     giris: giris,
     cikis: cikis,
+    adi_simple: adi_simple,
+    soyadi_simple: soyadi_simple,
   };
 };
 
@@ -45,10 +47,12 @@ const wolvoxCsvToData = (line) => {
     return;
   }
   const result = toData(
-    wolvoxStringConvert(line[WOLVOX_ODA_NO_INDEX] + ""),
-    wolvoxStringConvert(line[WOLVOX_ADI_INDEX]),
-    wolvoxStringConvert(line[WOLVOX_SOYADI_INDEX]),
-    line[WOLVOX_GIRIS_INDEX],
+    commonStringConvert(line[WOLVOX_ODA_NO_INDEX] + ""),
+    commonStringConvert(line[WOLVOX_ADI_INDEX]),
+    commonStringSimplify(line[WOLVOX_ADI_INDEX]),
+    commonStringConvert(line[WOLVOX_SOYADI_INDEX]),
+    commonStringSimplify(line[WOLVOX_SOYADI_INDEX]),
+    commonStringSimplify(line[WOLVOX_GIRIS_INDEX]),
     line[WOLVOX_CIKIS_INDEX]);
   console.log("wolvox to data", result);
   return result;
@@ -56,9 +60,11 @@ const wolvoxCsvToData = (line) => {
 
 const kimbilCsvToData = (line) => {
   const result = toData(
-    kimbilStringConvert(line[KIMBIL_ODA_NO_INDEX] + ""),
-    kimbilStringConvert(line[KIMBIL_ADI_INDEX]),
-    kimbilStringConvert(line[KIMBIL_SOYADI_INDEX]),
+    commonStringConvert(line[KIMBIL_ODA_NO_INDEX] + ""),
+    commonStringConvert(line[KIMBIL_ADI_INDEX]),
+    commonStringSimplify(line[KIMBIL_ADI_INDEX]),
+    commonStringConvert(line[KIMBIL_SOYADI_INDEX]),
+    commonStringSimplify(line[KIMBIL_SOYADI_INDEX]),
     line[KIMBIL_GIRIS_INDEX], "-");
   console.log("kimbil to data", result);
   return result;
@@ -82,33 +88,43 @@ const contains = (container, contained) => {
 
 const commonStringConvert = (s) => {
   s = replaceAll(s, " ", "");
-  s = replaceAll(s, "�", "_");
   s = replaceAll(s, "\r", "");
-  return s;
-};
-
-const wolvoxStringConvert = (s) => {
   s = replaceAll(s, "Ý", "&#304;");
   s = replaceAll(s, "Þ", "&#350;");
   s = replaceAll(s, "Ð", "&#286;");
-  s = commonStringConvert(s);
-  return s;
-};
-
-const kimbilStringConvert = (s) => {
   s = replaceAll(s, "˜", "&#304;");
   s = replaceAll(s, "ž", "&#350;");
   s = replaceAll(s, "¦", "&#286;");
   s = replaceAll(s, "š", "&Uuml;");
   s = replaceAll(s, "™", '&Ouml;');
   s = replaceAll(s, "€", '&Ccedil;');
-  s = commonStringConvert(s);
+  s = replaceAll(s, "Ü", "&Uuml;");
+  s = replaceAll(s, "Ö", '&Ouml;');
+  s = replaceAll(s, "Ç", '&Ccedil;');
+  s = replaceAll(s, "Ğ", '&#286;');
+  s = replaceAll(s, "İ", '&#304;');
   return s;
 };
 
-const stringConvertFunctions = {};
-stringConvertFunctions[KEY_CSV_KIMBIL] = kimbilStringConvert;
-stringConvertFunctions[KEY_CSV_WOLVOX] = wolvoxStringConvert;
+const commonStringSimplify = (s) => {
+  s = replaceAll(s, " ", "");
+  s = replaceAll(s, "\r", "");
+  s = replaceAll(s, "Ý", "I");
+  s = replaceAll(s, "Þ", "S");
+  s = replaceAll(s, "Ð", "G");
+  s = replaceAll(s, "˜", "I");
+  s = replaceAll(s, "ž", "S");
+  s = replaceAll(s, "¦", "G");
+  s = replaceAll(s, "š", "U");
+  s = replaceAll(s, "™", 'O');
+  s = replaceAll(s, "€", 'C');
+  s = replaceAll(s, "Ü", "U");
+  s = replaceAll(s, "Ö", 'O');
+  s = replaceAll(s, "Ç", 'C');
+  s = replaceAll(s, "Ğ", 'G');
+  s = replaceAll(s, "İ", 'I');
+  return s;
+};
 
 const convertOneCsvData = (that, key) => {
   const raw = that.rawData[key];
@@ -133,15 +149,13 @@ const convertOneCsvData = (that, key) => {
     console.log(key, "full", that.fullData[key]);
     that.fullData[key].sort((a, b) => {
       // soyadi, adi
-      if (a.soyadi === b.soyadi) {
-        return a.adi > b.adi;
+      if (a.soyadi_simple === b.soyadi_simple) {
+        return a.adi_simple > b.adi_simple;
       }
-      return a.soyadi > b.soyadi;
+      return a.soyadi_simple > b.soyadi_simple;
     });
     console.log(key, "full sorted", that.fullData[key]);
     document.getElementById(DATA_ENTRY_AMOUNT_PREFIX + key).textContent = `${key} has ${that.fullData[key].length} entries!`;
-
-
   }
 };
 
@@ -156,8 +170,8 @@ const resemble = (s1, s2) => {
 
 const compareEntries = (baseEntry, otherEntry) => {
   const oda = resemble(baseEntry.odaNo, otherEntry.odaNo);
-  const adi = resemble(baseEntry.adi, otherEntry.adi);
-  const soyadi = resemble(baseEntry.soyadi, otherEntry.soyadi);
+  const adi = resemble(baseEntry.adi_simple, otherEntry.adi_simple);
+  const soyadi = resemble(baseEntry.soyadi_simple, otherEntry.soyadi_simple);
   if (oda && adi && soyadi) {
     console.log("Found match:", baseEntry, otherEntry);
     return true;
@@ -227,7 +241,7 @@ class App extends Component {
       const file = inPar1.target.files[0];
       console.log("in2", file);
       const reader = new FileReader();
-      reader.readAsText(file, "UTF-8");
+      reader.readAsText(file, 'ISO-8859-1');
       reader.onload = function (evt) {
         console.log("Read", evt.target.result);
         rawData[id] = evt.target.result;
