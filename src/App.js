@@ -138,6 +138,10 @@ const commonStringSimplify = (s) => {
   return s;
 };
 
+const stringCompare = (a, b) => {
+  return ('' + a).localeCompare(b + '');
+};
+
 const convertOneCsvData = (that, key) => {
   const raw = that.rawData[key];
   if (raw) {
@@ -162,9 +166,9 @@ const convertOneCsvData = (that, key) => {
     that.fullData[key].sort((a, b) => {
       // soyadi, adi
       if (a.soyadi_simple === b.soyadi_simple) {
-        return a.adi_simple > b.adi_simple;
+        return stringCompare(a.adi_simple, b.adi_simple);
       }
-      return a.soyadi_simple > b.soyadi_simple;
+      return stringCompare(a.soyadi_simple, b.soyadi_simple);
     });
     console.log(key, "full sorted", that.fullData[key]);
     document.getElementById(DATA_ENTRY_AMOUNT_PREFIX + key).textContent = `${key} has ${that.fullData[key].length} entries!`;
