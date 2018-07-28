@@ -80,25 +80,24 @@ const contains = (container, contained) => {
 
 const commonStringConvert = (s) => {
   s = replaceAll(s, " ", "");
-  s = replaceAll(s, "İ", "I");
   return s;
 };
 
 const wolvoxStringConvert = (s) => {
-  s = replaceAll(s, "Ý", "İ");
-  s = replaceAll(s, "Þ", "Ş");
-  s = replaceAll(s, "Ð", "Ğ");
+  s = replaceAll(s, "Ý", "&#304;");
+  s = replaceAll(s, "Þ", "&#350;");
+  s = replaceAll(s, "Ð", "&#286;");
   s = commonStringConvert(s);
   return s;
 };
 
 const kimbilStringConvert = (s) => {
-  s = replaceAll(s, "˜", "İ");
-  s = replaceAll(s, "ž", "Ş");
-  s = replaceAll(s, "¦", "Ğ");
-  s = replaceAll(s, "š", "Ü");
-  s = replaceAll(s, "™", 'Ö');
-  s = replaceAll(s, "€", 'Ç');
+  s = replaceAll(s, "˜", "&#304;");
+  s = replaceAll(s, "ž", "&#350;");
+  s = replaceAll(s, "¦", "&#286;");
+  s = replaceAll(s, "š", "&Uuml;");
+  s = replaceAll(s, "™", '&Ouml;');
+  s = replaceAll(s, "€", '&Ccedil;');
   s = commonStringConvert(s);
   return s;
 };
