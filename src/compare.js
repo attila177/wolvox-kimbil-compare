@@ -9,8 +9,21 @@ const resemble = (s1, s2) => {
     return s1 === s2 || contains(s1, s2) || contains(s2, s1);
 };
 
+const stripLeadingZeros = (s) => {
+    while (s.startsWith("0")) {
+        s = s.substring(1);
+    }
+    return s;
+};
+
+const numbersResemble = (s1, s2) => {
+    s1 = stripLeadingZeros(s1);
+    s2 = stripLeadingZeros(s2);
+    return s1 === s2;
+};
+
 const compareEntries = (baseEntry, otherEntry) => {
-    const oda = resemble(baseEntry.odaNo, otherEntry.odaNo);
+    const oda = numbersResemble(baseEntry.odaNo, otherEntry.odaNo);
     const adi = resemble(baseEntry.adi_simple, otherEntry.adi_simple);
     const soyadi = resemble(baseEntry.soyadi_simple, otherEntry.soyadi_simple);
     if (oda && adi && soyadi) {
@@ -64,7 +77,7 @@ const searchSimilarForOne = (that, fullData, key, otherKey) => {
                 let bestCandidate = null;
                 let minDistance = 0;
                 for (let otherEntry of otherData) {
-                    if (otherEntry.notInOther && resemble(baseEntry.odaNo, otherEntry.odaNo)) {
+                    if (otherEntry.notInOther && numbersResemble(baseEntry.odaNo, otherEntry.odaNo)) {
                         // use levenshtein distance
                         const distance = levDist(newEntry, otherEntry, 2);
                         if (!bestCandidate || distance < minDistance) {
@@ -80,7 +93,7 @@ const searchSimilarForOne = (that, fullData, key, otherKey) => {
                     debug("Could not find a similar entry with levenshtein!");
                     newEntry.similarFound = false;
                     for (let otherEntry of otherData) {
-                        if (otherEntry.notInOther && resemble(baseEntry.odaNo, otherEntry.odaNo) && resemble(baseEntry.adi_simple, otherEntry.adi_simple)) {
+                        if (otherEntry.notInOther && numbersResemble(baseEntry.odaNo, otherEntry.odaNo) && resemble(baseEntry.adi_simple, otherEntry.adi_simple)) {
                             debug("Found a similar entry with roomNo & firstName to", newEntry, otherEntry);
                             newEntry.sameRoomNoAndFirstNameFound = true;
                             break;
