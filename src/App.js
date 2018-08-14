@@ -250,6 +250,11 @@ class App extends Component {
           <img src={logo} className="App-logo" alt="logo" />
           <h1 className="App-title">Wolvox Kimbil Compare</h1>
         </header>
+        Error colors:<br />
+        <span style={{ backgroundColor: "red" }}>Unknown problem</span> &nbsp;
+        <span style={{ backgroundColor: "yellow" }}>Entry with max 2 different letters in first and last name found</span> &nbsp;
+        <span style={{ backgroundColor: "fuchsia" }}>Entry with same room number and first name found</span>
+        <br />
         <div className="red" id={`${VALIDATION_ERROR_HOLDER}${KEY_CSV_WOLVOX}`}></div>
         <div className="red" id={`${VALIDATION_ERROR_HOLDER}${KEY_CSV_KIMBIL}`}></div>
         <table className="full">

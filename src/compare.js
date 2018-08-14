@@ -64,7 +64,8 @@ const searchSimilarForOne = (that, fullData, key, otherKey) => {
                 let bestCandidate = null;
                 let minDistance = 0;
                 for (let otherEntry of otherData) {
-                    if (otherEntry.notInOther) {
+                    if (otherEntry.notInOther && resemble(baseEntry.odaNo, otherEntry.odaNo)) {
+                        // use levenshtein distance
                         const distance = levDist(newEntry, otherEntry, 2);
                         if (!bestCandidate || distance < minDistance) {
                             bestCandidate = otherEntry;
@@ -73,11 +74,18 @@ const searchSimilarForOne = (that, fullData, key, otherKey) => {
                     }
                 }
                 if (bestCandidate && minDistance < 3) {
-                    debug("Found a similar entry to", newEntry, minDistance, bestCandidate);
+                    debug("Found a similar entry with levenshtein to", newEntry, minDistance, bestCandidate);
                     newEntry.similarFound = true;
                 } else {
-                    debug("Could not find a similar entry!");
+                    debug("Could not find a similar entry with levenshtein!");
                     newEntry.similarFound = false;
+                    for (let otherEntry of otherData) {
+                        if (otherEntry.notInOther && resemble(baseEntry.odaNo, otherEntry.odaNo) && resemble(baseEntry.adi_simple, otherEntry.adi_simple)) {
+                            debug("Found a similar entry with roomNo & firstName to", newEntry, otherEntry);
+                            newEntry.sameRoomNoAndFirstNameFound = true;
+                            break;
+                        }
+                    }
                 }
             }
             newData.push(newEntry);

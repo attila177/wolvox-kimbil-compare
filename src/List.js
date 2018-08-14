@@ -23,6 +23,10 @@ class List extends Component {
                     st = { "backgroundColor": "red" };
                     if (entry.similarFound === true) {
                         st = { "backgroundColor": "yellow" };
+                    } else {
+                        if (entry.sameRoomNoAndFirstNameFound) {
+                            st = { "backgroundColor": "fuchsia" };
+                        }
                     }
                 }
                 trs.push(<tr key={key} style={st}><td>{entry.odaNo}</td><td>{entry.adi}</td><td>{entry.soyadi}</td></tr>);
