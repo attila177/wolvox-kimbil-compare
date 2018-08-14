@@ -1,6 +1,6 @@
 {
   "name": "wolvox-kimbil-compare",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Compares csv exports of the Wolvox ERP system for hotels and the Kimbil system for Turkish hotels",
   "keywords": [
     "csv",
