@@ -7,7 +7,6 @@ import { eventMaker } from './reducers/reducer.js';
 import { stringCompare, compareAllCsvData } from './compare';
 import { debug, KEY_CSV_KIMBIL, KEY_CSV_WOLVOX } from './common';
 
-const DATA_ENTRY_AMOUNT_PREFIX = "data-entry-amount-";
 const VALIDATION_ERROR_HOLDER = "validation-error-holder";
 
 const WOLVOX_ODA_NO_INDEX = 0;
@@ -198,7 +197,6 @@ const convertOneCsvData = (that, key) => {
     console.log(key, "full sorted", fullData);
     that.props.dispatch(eventMaker(key, fullData));
     return fullData;
-    document.getElementById(DATA_ENTRY_AMOUNT_PREFIX + key).textContent = `${key} has ${fullData.length} entries!`;
   }
 };
 
@@ -242,7 +240,7 @@ class App extends Component {
     };
     const dataIsPresent = <div id={`{id}-present`} ></div >;
     return <div>{id}: <br /><input type="file" id={id} onChange={read} /> {dataIsPresent} <br />
-      <span id={`${DATA_ENTRY_AMOUNT_PREFIX}${id}`}></span></div>;
+    </div>;
   }
 
   render() {
