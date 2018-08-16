@@ -3,6 +3,10 @@ export const KEY_CSV_WOLVOX = "csv-wolvox";
 export const KEY_CSV_KIMBIL = "csv-kimbil";
 
 const output_debug = true;
+
+/**
+ * Outputs all given arguments into console.log, if output_debug is true.
+ */
 export const debug = () => {
     if (!output_debug) {
         return;

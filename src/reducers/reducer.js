@@ -4,7 +4,12 @@ const initialState = {
 const stateChangerEventPostfix = "CHANGER";
 const fullStateChangerEventKey = "FULLSTATE" + stateChangerEventPostfix;
 
-
+/**
+ * Generates an event object for saving partial data under a given key.
+ * @param {string} leKey The key of the data
+ * @param {object} data The data to save
+ * @returns {object} the event object
+ */
 export const eventMaker = (leKey, data) => {
     return {
         type: leKey + stateChangerEventPostfix,
@@ -13,6 +18,11 @@ export const eventMaker = (leKey, data) => {
     };
 };
 
+/**
+ * Generates an event object for saving full data.
+ * @param {object} data The data to save
+ * @returns {object} the event object
+ */
 export const fullEventMaker = (data) => {
     return {
         type: fullStateChangerEventKey,
@@ -20,6 +30,11 @@ export const fullEventMaker = (data) => {
     };
 };
 
+/**
+ * A reducer that handles "*CHANGER" actions
+ * @param {object} state The previous state
+ * @param {object} action The action that was received
+ */
 export const rootReducer = (state = initialState, action) => {
     let newState = { ...state };
     let touched = false;

@@ -1,14 +1,31 @@
 import { debug, KEY_CSV_KIMBIL, KEY_CSV_WOLVOX } from './common';
 import { fullEventMaker } from './reducers/reducer';
 
+/**
+ * Uses string.localeCompare() to compare the given strings
+ * @param {string} a The first string of the comparison
+ * @param {string} b The second string of the comparison
+ * @returns {boolean} Whether string.localeCompare() returns true
+ */
 export const stringCompare = (a, b) => {
     return ('' + a).localeCompare(b + '');
 };
 
+/**
+ * Uses a less strict algorithm to compare the given strings; if one string is contained in the other, true is returned
+ * @param {string} a The first string of the comparison
+ * @param {string} b The second string of the comparison
+ * @returns {boolean} Whether === or contains(a,b) or contains(b,a) returns true
+ */
 const resemble = (s1, s2) => {
     return s1 === s2 || contains(s1, s2) || contains(s2, s1);
 };
 
+/**
+ * Strips leading zeros from given string
+ * @param {string} s The string from which to strip leading zeros 
+ * @returns {string} A string without leading zeros
+ */
 const stripLeadingZeros = (s) => {
     while (s.startsWith("0")) {
         s = s.substring(1);
@@ -16,12 +33,24 @@ const stripLeadingZeros = (s) => {
     return s;
 };
 
+/**
+ * Uses a less strict algorithm to compare the given number strings by stripping leading zeros
+ * @param {string} s1 The first number string of the comparison
+ * @param {string} s2 The second number string of the comparison
+ * @returns {boolean} Whether s1 === s2 after stripping leading zeros
+ */
 const numbersResemble = (s1, s2) => {
     s1 = stripLeadingZeros(s1);
     s2 = stripLeadingZeros(s2);
     return s1 === s2;
 };
 
+/**
+ * Compares two entries.
+ * @param {object} baseEntry The first entry of the comparison 
+ * @param {object} otherEntry The second entry of the comparison
+ * @returns {boolean} true iff numbersResemble(odaNo) && resemble(adi) && resemble(soyadi)
+ */
 const compareEntries = (baseEntry, otherEntry) => {
     const oda = numbersResemble(baseEntry.odaNo, otherEntry.odaNo);
     const adi = resemble(baseEntry.adi_simple, otherEntry.adi_simple);
@@ -36,6 +65,14 @@ const compareEntries = (baseEntry, otherEntry) => {
     return false;
 };
 
+/**
+ * Carries out comparison for all entries of the data of one realm.
+ * @param {object} that Not needed
+ * @param {object} fullData The container containing data of all realms
+ * @param {string} key The key of the realm to compare all entries of
+ * @param {string} otherKey The key of the other realm with which to compare
+ * @returns {array} The processed data for given realm
+ */
 const compareOne = (that, fullData, key, otherKey) => {
     const baseData = fullData[key];
     const otherData = fullData[otherKey];
@@ -64,6 +101,14 @@ const compareOne = (that, fullData, key, otherKey) => {
     return newData;
 };
 
+/**
+ * Searches similar entries for all previously non-matched entries of the data of one realm.
+ * @param {object} that Not needed
+ * @param {object} fullData The container containing data of all realms
+ * @param {string} key The key of the realm to compare all entries of
+ * @param {string} otherKey The key of the other realm with which to compare
+ * @returns {array} The processed data for given realm
+ */
 const searchSimilarForOne = (that, fullData, key, otherKey) => {
     const baseData = fullData[key];
     const otherData = fullData[otherKey];
@@ -109,6 +154,11 @@ const searchSimilarForOne = (that, fullData, key, otherKey) => {
     return newData;
 };
 
+/**
+ * Carries out all necessary comparison operations, then triggers an event with the updated data.
+ * @param {object} that Needed for the dispatch function
+ * @param {object} fullData The unprocessed data
+ */
 export const compareAllCsvData = (that, fullData) => {
     let dataCopy = { ...fullData };
     dataCopy[KEY_CSV_KIMBIL] = compareOne(that, dataCopy, KEY_CSV_KIMBIL, KEY_CSV_WOLVOX);
@@ -118,10 +168,24 @@ export const compareAllCsvData = (that, fullData) => {
     that.props.dispatch(fullEventMaker(dataCopy));
 };
 
+/**
+ * Whether given string is contained in other given string.
+ * @param {string} container The string within which to search
+ * @param {string} contained The string for which to search
+ * @returns {boolean} true iff contained is contained in container
+ */
 const contains = (container, contained) => {
     return container.indexOf(contained) >= 0;
 };
 
+/**
+ * Computes the levenshtein distance for two given entries' name fields, if the length difference
+ * of the extracted strings is below given threshold. If not, the length of the longer string
+ * is returned as the distance.
+ * @param {object} sFull The first string
+ * @param {object} tFull The second string
+ * @param {number} maxLengthDifference The threshold for the computationo of the distance
+ */
 export const levDist = (sFull, tFull, maxLengthDifference) => {
     let s = sFull.adi_simple + sFull.soyadi_simple;
     let t = tFull.adi_simple + tFull.soyadi_simple;

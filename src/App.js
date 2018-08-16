@@ -9,12 +9,21 @@ import { DataConverter } from './convert';
 
 const VALIDATION_ERROR_HOLDER = "validation-error-holder";
 
+/**
+ * Displays a given message into the validation error display
+ * @param {string} key The key for the realm of the validation error (e.g. the key for WOLVOX)
+ * @param {string} msg The message to display
+ */
 const printValidationError = (key, msg) => {
   const oldMsg = document.getElementById(VALIDATION_ERROR_HOLDER + key).innerHTML;
   console.warn("validation error", key, msg);
   document.getElementById(VALIDATION_ERROR_HOLDER + key).innerHTML = oldMsg + " <br> " + msg;
 };
 
+/**
+ * Empties the validation error display for given key
+ * @param {string} key The key for the realm of the validation error display (e.g. the key for WOLVOX)
+ */
 const resetValidationError = (key) => {
   document.getElementById(VALIDATION_ERROR_HOLDER + key).innerHTML = "";
 };
@@ -27,6 +36,12 @@ class App extends Component {
     this.converter = new DataConverter(printValidationError, resetValidationError);
   }
 
+  /**
+   * Returns JSX for a file reader for given realm ID (e.g. WOLVOX realm id)
+   * @param {string} id The realm ID for which the file reader should be generated
+   * @returns {object} The JSX for the file reader, writing file contents into
+   * this.rawData and triggering conversion and comparison
+   */
   fileReader(id) {
     if (!this.rawData) {
       this.rawData = {};
@@ -93,4 +108,7 @@ const mapDispatchToProps = function (dispatch) {
   return { dispatch: dispatch };
 };
 
+/**
+ * The root react object for this app
+ */
 export default connect(mapStateToProps, mapDispatchToProps)(App);
