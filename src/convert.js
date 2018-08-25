@@ -2,11 +2,17 @@ import { debug, KEY_CSV_KIMBIL, KEY_CSV_WOLVOX } from './common';
 import { stringCompare } from './compare';
 import { eventMaker } from './reducers/reducer';
 
-const WOLVOX_ODA_NO_INDEX = 0;
-const WOLVOX_ADI_INDEX = 4;
-const WOLVOX_SOYADI_INDEX = 5;
-const WOLVOX_GIRIS_INDEX = 8;
-const WOLVOX_CIKIS_INDEX = 10;
+let WOLVOX_ODA_NO_INDEX = -1;
+let WOLVOX_ADI_INDEX = -1;
+let WOLVOX_SOYADI_INDEX = -1;
+let WOLVOX_GIRIS_INDEX = -1;
+let WOLVOX_CIKIS_INDEX = -1;
+
+const WOLVOX_ODA_NO_ROW_HEADER = "Oda No";
+const WOLVOX_ADI_ROW_HEADER = "Adý";
+const WOLVOX_SOYADI_ROW_HEADER = "Soyadý";
+const WOLVOX_GIRIS_ROW_HEADER = "Giriþ Tarihi";
+const WOLVOX_CIKIS_ROW_HEADER = "Çýkýþ Tarihi";
 
 const KIMBIL_ODA_NO_INDEX = 9;
 const KIMBIL_ADI_INDEX = 0;
@@ -184,19 +190,53 @@ const kimbilCsvRawCsvValidationFunction = (lines, printValidationError, resetVal
  */
 const wolvoxCsvRawCsvValidationFunction = (lines, printValidationError, resetValidationError) => {
     console.log("Validating wolvox raw csv", lines);
+    const firstLine = lines[0];
+    let i = 0;
+    for (let rowHeader of firstLine) {
+        switch (rowHeader) {
+            case WOLVOX_ODA_NO_ROW_HEADER:
+                WOLVOX_ODA_NO_INDEX = i;
+                break;
+            case WOLVOX_ADI_ROW_HEADER:
+                WOLVOX_ADI_INDEX = i;
+                break;
+            case WOLVOX_SOYADI_ROW_HEADER:
+                WOLVOX_SOYADI_INDEX = i;
+                break;
+            case WOLVOX_GIRIS_ROW_HEADER:
+                WOLVOX_GIRIS_INDEX = i;
+                break;
+            case WOLVOX_CIKIS_ROW_HEADER:
+                WOLVOX_CIKIS_INDEX = i;
+                break;
+        }
+        i++;
+    }
     let err = false;
     resetValidationError(KEY_CSV_WOLVOX);
-    if (lines[0][0] !== "Oda No") {
-        printValidationError(KEY_CSV_WOLVOX, `CSV file uploaded for Wolvox is not valid: First row should be 'Oda No', but is '${lines[0][0]}'!`);
-        err = true;
-    }
-    if (lines[0].length !== 65) {
-        printValidationError(KEY_CSV_WOLVOX, `CSV file uploaded for Wolvox is not valid: There should be 65 columns, but there are ${lines[0].length}!`);
-        err = true;
-    }
+    err = err || handleWolvoxRowError(WOLVOX_ODA_NO_INDEX, "Oda No", printValidationError);
+    err = err || handleWolvoxRowError(WOLVOX_ADI_INDEX, "Ad", printValidationError);
+    err = err || handleWolvoxRowError(WOLVOX_SOYADI_INDEX, "Soyad", printValidationError);
+    err = err || handleWolvoxRowError(WOLVOX_GIRIS_INDEX, "Giris", printValidationError);
+    err = err || handleWolvoxRowError(WOLVOX_CIKIS_INDEX, "Cikis", printValidationError);
     if (!err) {
         resetValidationError(KEY_CSV_WOLVOX);
     }
+};
+
+/**
+ * Handles output to validation error field if row index is invalid.
+ * @param {number} index The row index (result of detection algorithm)
+ * @param {string} name The displayable name of the row
+ * @param {function} printValidationError The function to use for printing to the validation error field
+ * @returns true if the row index is invalid
+ */
+const handleWolvoxRowError = (index, name, printValidationError) => {
+    if (index === -1) {
+        printValidationError(KEY_CSV_WOLVOX, `CSV file uploaded for Wolvox is not valid: Could not find row header  ${name}!`);
+        return true;
+    }
+    return false;
 };
 
 /**
