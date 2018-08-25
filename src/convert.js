@@ -13,6 +13,11 @@ const KIMBIL_ADI_INDEX = 0;
 const KIMBIL_SOYADI_INDEX = 7;
 const KIMBIL_GIRIS_INDEX = 4;
 
+/**
+ * Extracts raw csv into a [][].
+ * @param {string} raw The raw file contents
+ * @returns {array} A two-dimensional array with csv contents. 
+ */
 const extractCsv = (raw) => {
     const lines = raw.split("\n");
     const result = [];
@@ -23,6 +28,17 @@ const extractCsv = (raw) => {
     return result;
 };
 
+/**
+ * Creates an entry object with given data.
+ * @param {string} odaNo The room number
+ * @param {string} adi The first name (with special characters)
+ * @param {string} adi_simple The first name (without special characters)
+ * @param {string} soyadi The last name (with special characters)
+ * @param {string} soyadi_simple The last name (without special characters)
+ * @param {string} giris A string representation of the date of arrival
+ * @param {string} cikis A string representation of the date of departure
+ * @returns {object} The entry object
+ */
 const toData = (odaNo, adi, adi_simple, soyadi, soyadi_simple, giris, cikis) => {
     return {
         odaNo: odaNo,
@@ -35,6 +51,11 @@ const toData = (odaNo, adi, adi_simple, soyadi, soyadi_simple, giris, cikis) => 
     };
 };
 
+/**
+ * Converts a line from the wolvox csv into an entry object.
+ * @param {array} line A line from the wolvox csv
+ * @returns {object} The resulting entry object
+ */
 const wolvoxCsvToData = (line) => {
     if (line.length < 2) {
         return;
@@ -51,6 +72,11 @@ const wolvoxCsvToData = (line) => {
     return result;
 };
 
+/**
+ * Converts a line from the kimbil csv into an entry object.
+ * @param {array} line A line from the kimbil csv
+ * @returns {object} The resulting entry object
+ */
 const kimbilCsvToData = (line) => {
     const result = toData(
         commonStringConvert(line[KIMBIL_ODA_NO_INDEX] + ""),
@@ -67,8 +93,13 @@ const csvToDataFunctions = {};
 csvToDataFunctions[KEY_CSV_KIMBIL] = kimbilCsvToData;
 csvToDataFunctions[KEY_CSV_WOLVOX] = wolvoxCsvToData;
 
-
-
+/**
+ * Replaces all occurences of given string within other given string with third given string.
+ * @param {string} input The string to work with
+ * @param {string} shouldDisappear The segment that should no longer be in given string
+ * @param {string} shouldAppear The segment to write into given string instead of occurences of other given string
+ * @returns {string} The resulting string
+ */
 const replaceAll = (input, shouldDisappear, shouldAppear) => {
     let output = input;
     while (output.indexOf(shouldDisappear) >= 0) {
@@ -77,6 +108,11 @@ const replaceAll = (input, shouldDisappear, shouldAppear) => {
     return output;
 };
 
+/**
+ * Converts given string, removing spaces and correcting encoding issues.
+ * @param {string} s The string to convert 
+ * @returns {string} The resulting string
+ */
 const commonStringConvert = (s) => {
     s = replaceAll(s, " ", "");
     s = replaceAll(s, "\r", "");
@@ -92,6 +128,11 @@ const commonStringConvert = (s) => {
     return s;
 };
 
+/**
+ * Simplifies given string, removing spaces and replacing special characters with their nearest simple neighbors.
+ * @param {string} s The string to convert 
+ * @returns {string} The resulting string
+ */
 const commonStringSimplify = (s) => {
     s = replaceAll(s, " ", "");
     s = replaceAll(s, "\r", "");
@@ -112,6 +153,12 @@ const commonStringSimplify = (s) => {
     return s;
 };
 
+/**
+ * Validates raw csv input for kimbil csv, also handling validation error display.
+ * @param {string} lines The raw csv lines
+ * @param {function} printValidationError The function for printing validation errors
+ * @param {function} resetValidationError The function for resetting validation error display
+ */
 const kimbilCsvRawCsvValidationFunction = (lines, printValidationError, resetValidationError) => {
     console.log("Validating kimbil raw csv", lines);
     let err = false;
@@ -129,6 +176,12 @@ const kimbilCsvRawCsvValidationFunction = (lines, printValidationError, resetVal
     }
 };
 
+/**
+ * Validates raw csv input for wolvox csv, also handling validation error display.
+ * @param {string} lines The raw csv lines
+ * @param {function} printValidationError The function for printing validation errors
+ * @param {function} resetValidationError The function for resetting validation error display
+ */
 const wolvoxCsvRawCsvValidationFunction = (lines, printValidationError, resetValidationError) => {
     console.log("Validating wolvox raw csv", lines);
     let err = false;
@@ -146,6 +199,11 @@ const wolvoxCsvRawCsvValidationFunction = (lines, printValidationError, resetVal
     }
 };
 
+/**
+ * For given key, returns the respective validation function.
+ * @param {string} key The realm key, e.g. the WOLVOX key
+ * @returns {function} The respective validation function.
+ */
 const csvRawCsvValidationFunctions = (key) => {
     switch (key) {
         case KEY_CSV_KIMBIL:
@@ -157,12 +215,25 @@ const csvRawCsvValidationFunctions = (key) => {
     }
 }
 
+/**
+ * Class handling conversion of data from CSV to entry object.
+ */
 export class DataConverter {
+    /**
+     * @param {function} printValidationErrorFunction The function for printing validation errors
+     * @param {function} resetValidationErrorFunction The function for resetting validation error display
+     */
     constructor(printValidationErrorFunction, resetValidationErrorFunction) {
         this.printValidationErrorFunction = printValidationErrorFunction;
         this.resetValidationErrorFunction = resetValidationErrorFunction;
     }
 
+    /**
+     * Converts CSV data into entry objects, dispatching events
+     * for saving the resulting data.
+     * @param {object} that The object containing the dispatch function
+     * @returns {object} a container containing the converted data
+     */
     convertAllCsvData(that) {
         let fullData = {};
         let dataKimbil = this.convertOneCsvData(that, KEY_CSV_KIMBIL);
@@ -172,6 +243,13 @@ export class DataConverter {
         return fullData;
     }
 
+    /**
+     * Converts CSV data into entry objects for one realm, dispatching an event
+     * for saving the resulting data.
+     * @param {object} that The object containing the dispatch function
+     * @param {string} key The realm key for which to carry out the process
+     * @returns {array} the converted data
+     */
     convertOneCsvData(that, key) {
         const raw = that.rawData[key];
         if (raw) {
