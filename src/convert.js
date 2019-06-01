@@ -9,8 +9,8 @@ let WOLVOX_GIRIS_INDEX = -1;
 let WOLVOX_CIKIS_INDEX = -1;
 
 const WOLVOX_ODA_NO_ROW_HEADER = "Oda No";
-const WOLVOX_ADI_ROW_HEADER = "Ad";
-const WOLVOX_SOYADI_ROW_HEADER = "Soyad";
+const WOLVOX_ADI_ROW_HEADER = "Adý";
+const WOLVOX_SOYADI_ROW_HEADER = "Soyadý";
 const WOLVOX_GIRIS_ROW_HEADER = "Giriþ Tarihi";
 const WOLVOX_CIKIS_ROW_HEADER = "Çýkýþ Tarihi";
 
