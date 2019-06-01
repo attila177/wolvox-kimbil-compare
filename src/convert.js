@@ -107,6 +107,9 @@ csvToDataFunctions[KEY_CSV_WOLVOX] = wolvoxCsvToData;
  * @returns {string} The resulting string
  */
 const replaceAll = (input, shouldDisappear, shouldAppear) => {
+    if (!input) {
+        return input;
+    }
     let output = input;
     while (output.indexOf(shouldDisappear) >= 0) {
         output = output.replace(shouldDisappear, shouldAppear);
@@ -120,6 +123,9 @@ const replaceAll = (input, shouldDisappear, shouldAppear) => {
  * @returns {string} The resulting string
  */
 const commonStringConvert = (s) => {
+    if (!s) {
+        return s;
+    }
     s = replaceAll(s, " ", "");
     s = replaceAll(s, "\r", "");
     s = replaceAll(s, "Ý", "İ");
@@ -140,6 +146,9 @@ const commonStringConvert = (s) => {
  * @returns {string} The resulting string
  */
 const commonStringSimplify = (s) => {
+    if (!s) {
+        return s;
+    }
     s = replaceAll(s, " ", "");
     s = replaceAll(s, "\r", "");
     s = replaceAll(s, "Ý", "I");
