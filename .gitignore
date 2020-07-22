@@ -22,3 +22,5 @@ yarn-error.log*
 
 *.csv
 copy.sh
+
+/sample-data
