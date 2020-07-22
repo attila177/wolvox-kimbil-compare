@@ -122,7 +122,7 @@ const searchSimilarForOne = (that, fullData, key, otherKey) => {
                 let bestCandidate = null;
                 let minDistance = 0;
                 for (let otherEntry of otherData) {
-                    if (otherEntry.notInOther && numbersResemble(baseEntry.odaNo, otherEntry.odaNo)) {
+                    if (otherEntry.notInOther) {
                         // use levenshtein distance
                         const distance = levDist(newEntry, otherEntry, 2);
                         if (!bestCandidate || distance < minDistance) {
@@ -133,7 +133,15 @@ const searchSimilarForOne = (that, fullData, key, otherKey) => {
                 }
                 if (bestCandidate && minDistance < 3) {
                     debug("Found a similar entry with levenshtein to", newEntry, minDistance, bestCandidate);
-                    newEntry.similarFound = true;
+                    if (numbersResemble(baseEntry.odaNo, bestCandidate.odaNo)) {
+                        debug("Numbers resemble: mark as similar", newEntry, bestCandidate);
+                        newEntry.similarFound = true;
+                    } else {
+                        if (minDistance === 0) {
+                            debug("Numbers do not resemble, but names are identical: mark as same name different room", newEntry, bestCandidate);
+                            newEntry.sameNameButDifferentRoomNoFound = true;
+                        }
+                    }
                 } else {
                     debug("Could not find a similar entry with levenshtein!");
                     newEntry.similarFound = false;

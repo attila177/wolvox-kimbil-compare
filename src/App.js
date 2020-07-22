@@ -79,7 +79,8 @@ class App extends Component {
         Error colors:<br />
         <span style={{ backgroundColor: "red" }}>Unknown problem</span> &nbsp;
         <span style={{ backgroundColor: "yellow" }}>Entry with max 2 different letters in first and last name found</span> &nbsp;
-        <span style={{ backgroundColor: "fuchsia" }}>Entry with same room number and first name found</span>
+        <span style={{ backgroundColor: "fuchsia" }}>Entry with same room number and first name found</span> &nbsp;
+        <span style={{ backgroundColor: "lightblue" }}>Entry with same name, but different room number found</span>
         <br />
         <div className="red" id={`${VALIDATION_ERROR_HOLDER}${KEY_CSV_WOLVOX}`}></div>
         <div className="red" id={`${VALIDATION_ERROR_HOLDER}${KEY_CSV_KIMBIL}`}></div>
