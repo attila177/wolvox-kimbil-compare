@@ -7,7 +7,7 @@ const output_debug = true;
 /**
  * Outputs all given arguments into console.log, if output_debug is true.
  */
-export const debug = () => {
+export const debug = function () {
     if (!output_debug) {
         return;
     }
