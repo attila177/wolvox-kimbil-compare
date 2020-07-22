@@ -235,6 +235,8 @@ const commonStringSimplify = (s) => {
     s = replaceAll(s, "Ç", 'C');
     s = replaceAll(s, "Ğ", 'G');
     s = replaceAll(s, "İ", 'I');
+    s = replaceAll(s, "Ä", 'A');
+    s = replaceAll(s, "Ş", 'S');
     return s;
 };
 
