@@ -8,27 +8,97 @@ let WOLVOX_SOYADI_INDEX = -1;
 let WOLVOX_GIRIS_INDEX = -1;
 let WOLVOX_CIKIS_INDEX = -1;
 
-const WOLVOX_ODA_NO_ROW_HEADER = "Oda No";
-const WOLVOX_ADI_ROW_HEADER = "Adý";
-const WOLVOX_SOYADI_ROW_HEADER = "Soyadý";
-const WOLVOX_GIRIS_ROW_HEADER = "Giriþ Tarihi";
-const WOLVOX_CIKIS_ROW_HEADER = "Çýkýþ Tarihi";
+const WOLVOX_ODA_NO_ROW_HEADERS = ["Oda No"];
+const WOLVOX_ADI_ROW_HEADERS = ["Adý", "Adı"];
+const WOLVOX_SOYADI_ROW_HEADERS = ["Soyadý", "Soyadı"];
+const WOLVOX_GIRIS_ROW_HEADERS = ["Giriþ Tarihi", "Giriş Tarihi"];
+const WOLVOX_CIKIS_ROW_HEADERS = ["Çýkýþ Tarihi", "Çıkış Tarihi"];
 
 const KIMBIL_ODA_NO_INDEX = 9;
 const KIMBIL_ADI_INDEX = 0;
 const KIMBIL_SOYADI_INDEX = 7;
 const KIMBIL_GIRIS_INDEX = 4;
 
+const cellSeparators = [";", "\t", ","];
+
+/**
+ * @param {string} needle 
+ * @param {string} haystack 
+ * @return {number} how many times needle appears in haystack
+ */
+const countOccurences = (needle, haystack) => {
+    let copiedHaystack = "" + haystack;
+    let count = 0;
+    const max = 1000;
+    while (copiedHaystack.indexOf(needle) >= 0 && count < max) {
+        const index = copiedHaystack.indexOf(needle);
+        count++;
+        copiedHaystack = copiedHaystack.substring(index + 1);
+    }
+    if (count === max) {
+        throw Error("PROB");
+    }
+    return count;
+}
+
+/**
+ * @param {string[]} lines The lines of the CSV file
+ * @param {string} cellSeparator The separator symbol for which to compute the score
+ * @return {number} the computed score. the higher, the better
+ */
+const cellSeparatorScore = (lines, cellSeparator) => {
+    const amountMap = {};
+    const amountList = [];
+    for (let line of lines) {
+        const count = countOccurences(cellSeparator, line);
+        if (amountMap[count]) {
+            amountMap[count]++;
+        } else {
+            amountMap[count] = 1;
+        }
+        amountList.push(count);
+    }
+    const amounts = Object.keys(amountMap);
+    let score = amounts.length;
+    if (amounts.length > 2) {
+        score = -1 * amounts.length;
+    }
+    console.log("Cell separator", cellSeparator, "scored", score, "with", amounts, amountList);
+    return score;
+}
+
+/**
+ * @param {string[]} lines The lines of the CSV file
+ * @return {string} cellSeparator The separator symbol for with the highest score
+ */
+const detectCellSeparator = (lines) => {
+    const cellSeparatorScores = {};
+    let highestScore = Number.MIN_VALUE;
+    let cellSeparatorWithHighestScore = null;
+    for (let cellSeparator of cellSeparators) {
+        const score = cellSeparatorScore(lines, cellSeparator);
+        cellSeparatorScores[cellSeparator] = score;
+        if (score > highestScore) {
+            highestScore = score;
+            cellSeparatorWithHighestScore = cellSeparator;
+        }
+    }
+    console.log("Chose cell separator", cellSeparatorWithHighestScore, "after analysis", cellSeparatorScores);
+    return cellSeparatorWithHighestScore;
+}
+
 /**
  * Extracts raw csv into a [][].
- * @param {string} raw The raw file contents
+ * @param {string} rawFileContent The raw file contents
  * @returns {array} A two-dimensional array with csv contents. 
  */
-const extractCsv = (raw) => {
-    const lines = raw.split("\n");
+const extractCsv = (rawFileContent) => {
+    const lines = rawFileContent.split("\n");
     const result = [];
+    const cellSeparator = detectCellSeparator(lines);
+
     for (let line of lines) {
-        const sub = line.split(";");
+        const sub = line.split(cellSeparator);
         result.push(sub);
     }
     return result;
@@ -74,7 +144,7 @@ const wolvoxCsvToData = (line) => {
         commonStringSimplify(line[WOLVOX_SOYADI_INDEX]),
         commonStringSimplify(line[WOLVOX_GIRIS_INDEX]),
         line[WOLVOX_CIKIS_INDEX]);
-    debug("wolvox to data", result);
+    console.log("wolvox to data", result);
     return result;
 };
 
@@ -91,7 +161,7 @@ const kimbilCsvToData = (line) => {
         commonStringConvert(line[KIMBIL_SOYADI_INDEX]),
         commonStringSimplify(line[KIMBIL_SOYADI_INDEX]),
         line[KIMBIL_GIRIS_INDEX], "-");
-    debug("kimbil to data", result);
+    console.log("kimbil to data", result);
     return result;
 };
 
@@ -192,6 +262,20 @@ const kimbilCsvRawCsvValidationFunction = (lines, printValidationError, resetVal
 };
 
 /**
+ * @param {string} needle 
+ * @param {string[]} arrayOfHaystacks 
+ * @return {boolean} whether the needle equals one of the haystacks
+ */
+const equalsOne = (needle, arrayOfHaystacks) => {
+    for (let haystack of arrayOfHaystacks) {
+        if (needle === haystack) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
  * Validates raw csv input for wolvox csv, also handling validation error display.
  * @param {string} lines The raw csv lines
  * @param {function} printValidationError The function for printing validation errors
@@ -202,23 +286,21 @@ const wolvoxCsvRawCsvValidationFunction = (lines, printValidationError, resetVal
     const firstLine = lines[0];
     let i = 0;
     for (let rowHeader of firstLine) {
-        switch (rowHeader) {
-            case WOLVOX_ODA_NO_ROW_HEADER:
-                WOLVOX_ODA_NO_INDEX = i;
-                break;
-            case WOLVOX_ADI_ROW_HEADER:
-                WOLVOX_ADI_INDEX = i;
-                break;
-            case WOLVOX_SOYADI_ROW_HEADER:
-                WOLVOX_SOYADI_INDEX = i;
-                break;
-            case WOLVOX_GIRIS_ROW_HEADER:
-                WOLVOX_GIRIS_INDEX = i;
-                break;
-            case WOLVOX_CIKIS_ROW_HEADER:
-                WOLVOX_CIKIS_INDEX = i;
-                break;
+
+        if (equalsOne(rowHeader, WOLVOX_ODA_NO_ROW_HEADERS)) {
+            WOLVOX_ODA_NO_INDEX = i;
+        } else if (equalsOne(rowHeader, WOLVOX_ADI_ROW_HEADERS)) {
+            WOLVOX_ADI_INDEX = i;
+        } else if (equalsOne(rowHeader, WOLVOX_SOYADI_ROW_HEADERS)) {
+            WOLVOX_SOYADI_INDEX = i;
+        } else if (equalsOne(rowHeader, WOLVOX_GIRIS_ROW_HEADERS)) {
+            WOLVOX_GIRIS_INDEX = i;
+        } else if (equalsOne(rowHeader, WOLVOX_CIKIS_ROW_HEADERS)) {
+            WOLVOX_CIKIS_INDEX = i;
+        } else {
+            console.log("could not find matching rowHeader for", rowHeader);
         }
+
         i++;
     }
     let err = false;
@@ -305,22 +387,22 @@ export class DataConverter {
             const fullData = [];
             const data = extractCsv(raw);
             csvRawCsvValidationFunctions(key)(data, this.printValidationErrorFunction, this.resetValidationErrorFunction);
-            debug(key, "raw", data);
+            console.log(key, "raw", data);
             let isFirst = true;
             for (let entry of data) {
                 if (isFirst) {
                     isFirst = false;
-                    debug("Skipping first", entry);
+                    console.log("Skipping first", entry);
                     continue;
                 }
                 if (entry.length < 2) {
-                    debug("Skipping empty", entry);
+                    console.log("Skipping empty", entry);
                     continue;
                 }
                 const compiled = csvToDataFunctions[key](entry);
                 fullData.push(compiled);
             }
-            debug(key, "full", fullData);
+            console.log(key, "full", fullData);
             fullData.sort((a, b) => {
                 // soyadi, adi
                 if (a.soyadi_simple === b.soyadi_simple) {

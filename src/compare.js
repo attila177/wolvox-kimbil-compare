@@ -56,7 +56,7 @@ const compareEntries = (baseEntry, otherEntry) => {
     const adi = resemble(baseEntry.adi_simple, otherEntry.adi_simple);
     const soyadi = resemble(baseEntry.soyadi_simple, otherEntry.soyadi_simple);
     if (oda && adi && soyadi) {
-        debug("Found match:", baseEntry, otherEntry);
+        console.log("Found match:", baseEntry, otherEntry);
         return true;
     }
     if (oda || adi || soyadi) {
@@ -132,22 +132,22 @@ const searchSimilarForOne = (that, fullData, key, otherKey) => {
                     }
                 }
                 if (bestCandidate && minDistance < 3) {
-                    debug("Found a similar entry with levenshtein to", newEntry, minDistance, bestCandidate);
+                    console.log("Found a similar entry with levenshtein to", newEntry, minDistance, bestCandidate);
                     if (numbersResemble(baseEntry.odaNo, bestCandidate.odaNo)) {
-                        debug("Numbers resemble: mark as similar", newEntry, bestCandidate);
+                        console.log("Numbers resemble: mark as similar", newEntry, bestCandidate);
                         newEntry.similarFound = true;
                     } else {
                         if (minDistance === 0) {
-                            debug("Numbers do not resemble, but names are identical: mark as same name different room", newEntry, bestCandidate);
+                            console.log("Numbers do not resemble, but names are identical: mark as same name different room", newEntry, bestCandidate);
                             newEntry.sameNameButDifferentRoomNoFound = true;
                         }
                     }
                 } else {
-                    debug("Could not find a similar entry with levenshtein!");
+                    console.log("Could not find a similar entry with levenshtein!");
                     newEntry.similarFound = false;
                     for (let otherEntry of otherData) {
                         if (otherEntry.notInOther && numbersResemble(baseEntry.odaNo, otherEntry.odaNo) && resemble(baseEntry.adi_simple, otherEntry.adi_simple)) {
-                            debug("Found a similar entry with roomNo & firstName to", newEntry, otherEntry);
+                            console.log("Found a similar entry with roomNo & firstName to", newEntry, otherEntry);
                             newEntry.sameRoomNoAndFirstNameFound = true;
                             break;
                         }

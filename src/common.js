@@ -13,7 +13,7 @@ export const debug = function () {
     }
     let toLog = "";
     for (let arg of arguments) {
-        toLog += ((typeof arg === "string") ? arg : JSON.stringify(arg));
+        toLog += " " + ((typeof arg === "string") ? arg : JSON.stringify(arg));
     }
     console.log(toLog);
 };
