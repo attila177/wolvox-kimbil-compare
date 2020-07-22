@@ -14,7 +14,7 @@ class List extends Component {
         let trs = [];
         let text = <span />;
         if (this.props.dataForKey) {
-            text = <span> {`List has ${this.props.dataForKey.length} entries!`}</span>;
+            text = <span> {`Listenin ${this.props.dataForKey.length} kayıdı var!`}</span>;
             let key = 0;
             for (let entry of this.props.dataForKey) {
                 key++;
