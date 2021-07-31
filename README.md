@@ -9,3 +9,4 @@ This webapp allows comparing csv exports of the Akinsoft "Wolvox" ERP system for
 
 # Features
 * Automatic detection of CSV cell separator character (v1.4.0)
+* Interface in turkish (v1.5.0)
