@@ -404,13 +404,27 @@ export class DataConverter {
                 const compiled = csvToDataFunctions[key](entry);
                 fullData.push(compiled);
             }
+            let maxOdaNoLength = 0;
+            fullData.forEach(data => {
+                if(maxOdaNoLength < data.odaNo.length) {
+                    maxOdaNoLength = data.odaNo.length;
+                }
+            });
+            fullData.forEach(data => {
+                while(maxOdaNoLength > data.odaNo.length) {
+                    data.odaNo = `0${data.odaNo}`;
+                }
+            });
             console.log(key, "full", fullData);
             fullData.sort((a, b) => {
                 // soyadi, adi
-                if (a.soyadi_simple === b.soyadi_simple) {
+                if (a.soyadi_simple === b.soyadi_simple && a.odaNo === b.odaNo) {
                     return stringCompare(a.adi_simple, b.adi_simple);
                 }
-                return stringCompare(a.soyadi_simple, b.soyadi_simple);
+                if (a.odaNo === b.odaNo) {
+                    return stringCompare(a.soyadi_simple, b.soyadi_simple);
+                }
+                return stringCompare(a.odaNo, b.odaNo);
             });
             console.log(key, "full sorted", fullData);
             that.props.dispatch(eventMaker(key, fullData));
