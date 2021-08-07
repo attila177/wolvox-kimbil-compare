@@ -9,6 +9,7 @@ class List extends Component {
     static propTypes = {
         sourceKey: PropTypes.string.isRequired,
         dataForKey: PropTypes.array,
+        showAll: PropTypes.bool.isRequired,
     };
     render() {
         let trs = [];
@@ -32,7 +33,9 @@ class List extends Component {
                         }
                     }
                 }
-                trs.push(<tr key={key} style={st}><td>{entry.odaNo}</td><td>{entry.adi}</td><td>{entry.soyadi}</td></tr>);
+                if(this.props.showAll || entry.notInOther) {
+                    trs.push(<tr key={key} style={st}><td>{entry.odaNo}</td><td>{entry.adi}</td><td>{entry.soyadi}</td></tr>);
+                }
             }
         }
         return <div className="holder" id={`${DATA_HOLDER_DIV_PREFIX}${this.props.key}`}>

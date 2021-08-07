@@ -34,6 +34,9 @@ class App extends Component {
     super();
     this.rawData = {};
     this.converter = new DataConverter(printValidationError, resetValidationError);
+    this.state = {
+      showAll: false,
+    };
   }
 
   /**
@@ -70,6 +73,9 @@ class App extends Component {
   }
 
   render() {
+    const onCheckboxChanged = (e) => {
+      this.setState({...this.state, showAll: e.target.checked});
+    };
     return (
       <div className="App">
         <header className="App-header">
@@ -84,6 +90,10 @@ class App extends Component {
         <br />
         <div className="red" id={`${VALIDATION_ERROR_HOLDER}${KEY_CSV_WOLVOX}`}></div>
         <div className="red" id={`${VALIDATION_ERROR_HOLDER}${KEY_CSV_KIMBIL}`}></div>
+        <br />
+        <input id="showAll" type="checkbox" value= {`${this.state.showAll}`} onChange={onCheckboxChanged} />
+        <label htmlFor="showAll">B&uuml;t&uuml;n m&uuml;&#351;terileri g&ouml;ster</label>
+        <br />
         <table className="full">
           <tbody>
             <tr>
@@ -91,8 +101,8 @@ class App extends Component {
               <td>{this.fileReader(KEY_CSV_KIMBIL)}</td>
             </tr>
             <tr>
-              <td><List sourceKey={KEY_CSV_WOLVOX} /></td>
-              <td><List sourceKey={KEY_CSV_KIMBIL} /></td>
+              <td><List sourceKey={KEY_CSV_WOLVOX} showAll={this.state.showAll} /></td>
+              <td><List sourceKey={KEY_CSV_KIMBIL} showAll={this.state.showAll} /></td>
             </tr>
           </tbody>
         </table>

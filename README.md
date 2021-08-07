@@ -12,3 +12,4 @@ This webapp allows comparing csv exports of the Akinsoft "Wolvox" ERP system for
 * Interface in turkish (v1.5.0)
 * Entries sorted by Oda No (v1.6.0)
 * Prepare for use with broken wolvox CSV files (v1.7.0)
+* Add option to only display problematic list entries (v1.8.0)
