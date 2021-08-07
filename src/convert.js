@@ -1,6 +1,7 @@
-import { debug, KEY_CSV_KIMBIL, KEY_CSV_WOLVOX } from './common';
+import { KEY_CSV_KIMBIL, KEY_CSV_WOLVOX } from './common';
 import { stringCompare } from './compare';
 import { eventMaker } from './reducers/reducer';
+import { extractCsv } from './csv';
 
 let WOLVOX_ODA_NO_INDEX = -1;
 let WOLVOX_ADI_INDEX = -1;
@@ -19,91 +20,6 @@ const KIMBIL_ADI_INDEX = 0;
 const KIMBIL_SOYADI_INDEX = 7;
 const KIMBIL_GIRIS_INDEX = 4;
 
-const cellSeparators = [";", "\t", ","];
-
-/**
- * @param {string} needle 
- * @param {string} haystack 
- * @return {number} how many times needle appears in haystack
- */
-const countOccurences = (needle, haystack) => {
-    let copiedHaystack = "" + haystack;
-    let count = 0;
-    const max = 1000;
-    while (copiedHaystack.indexOf(needle) >= 0 && count < max) {
-        const index = copiedHaystack.indexOf(needle);
-        count++;
-        copiedHaystack = copiedHaystack.substring(index + 1);
-    }
-    if (count === max) {
-        throw Error("PROB");
-    }
-    return count;
-}
-
-/**
- * @param {string[]} lines The lines of the CSV file
- * @param {string} cellSeparator The separator symbol for which to compute the score
- * @return {number} the computed score. the higher, the better
- */
-const cellSeparatorScore = (lines, cellSeparator) => {
-    const amountMap = {};
-    const amountList = [];
-    for (let line of lines) {
-        const count = countOccurences(cellSeparator, line);
-        if (amountMap[count]) {
-            amountMap[count]++;
-        } else {
-            amountMap[count] = 1;
-        }
-        amountList.push(count);
-    }
-    const amounts = Object.keys(amountMap);
-    let score = amounts.length;
-    if (amounts.length > 2) {
-        score = -1 * amounts.length;
-    }
-    console.log("Cell separator", cellSeparator, "scored", score, "with", amounts, amountList);
-    return score;
-}
-
-/**
- * @param {string[]} lines The lines of the CSV file
- * @return {string} cellSeparator The separator symbol for with the highest score
- */
-const detectCellSeparator = (lines) => {
-    const cellSeparatorScores = {};
-    let highestScore = Number.MIN_VALUE;
-    let cellSeparatorWithHighestScore = null;
-    for (let cellSeparator of cellSeparators) {
-        const score = cellSeparatorScore(lines, cellSeparator);
-        cellSeparatorScores[cellSeparator] = score;
-        if (score > highestScore) {
-            highestScore = score;
-            cellSeparatorWithHighestScore = cellSeparator;
-        }
-    }
-    console.log("Chose cell separator", cellSeparatorWithHighestScore, "after analysis", cellSeparatorScores);
-    return cellSeparatorWithHighestScore;
-}
-
-/**
- * Extracts raw csv into a [][].
- * @param {string} rawFileContent The raw file contents
- * @returns {array} A two-dimensional array with csv contents. 
- */
-const extractCsv = (rawFileContent) => {
-    const lines = rawFileContent.split("\n");
-    const result = [];
-    const cellSeparator = detectCellSeparator(lines);
-
-    for (let line of lines) {
-        const sub = line.split(cellSeparator);
-        result.push(sub);
-    }
-    return result;
-};
-
 /**
  * Creates an entry object with given data.
  * @param {string} odaNo The room number
@@ -113,9 +29,10 @@ const extractCsv = (rawFileContent) => {
  * @param {string} soyadi_simple The last name (without special characters)
  * @param {string} giris A string representation of the date of arrival
  * @param {string} cikis A string representation of the date of departure
- * @returns {object} The entry object
+ * @returns The entry object
  */
 const toData = (odaNo, adi, adi_simple, soyadi, soyadi_simple, giris, cikis) => {
+    const isValid = !!(adi && soyadi);
     return {
         odaNo: odaNo,
         adi: adi,
@@ -124,13 +41,14 @@ const toData = (odaNo, adi, adi_simple, soyadi, soyadi_simple, giris, cikis) => 
         cikis: cikis,
         adi_simple: adi_simple,
         soyadi_simple: soyadi_simple,
+        isValid,
     };
 };
 
 /**
  * Converts a line from the wolvox csv into an entry object.
- * @param {array} line A line from the wolvox csv
- * @returns {object} The resulting entry object
+ * @param {string[]} line A line from the wolvox csv
+ * @returns The resulting entry object
  */
 const wolvoxCsvToData = (line) => {
     if (line.length < 2) {
@@ -150,8 +68,8 @@ const wolvoxCsvToData = (line) => {
 
 /**
  * Converts a line from the kimbil csv into an entry object.
- * @param {array} line A line from the kimbil csv
- * @returns {object} The resulting entry object
+ * @param {string[]} line A line from the kimbil csv
+ * @returns The resulting entry object
  */
 const kimbilCsvToData = (line) => {
     const result = toData(
@@ -165,9 +83,10 @@ const kimbilCsvToData = (line) => {
     return result;
 };
 
-const csvToDataFunctions = {};
-csvToDataFunctions[KEY_CSV_KIMBIL] = kimbilCsvToData;
-csvToDataFunctions[KEY_CSV_WOLVOX] = wolvoxCsvToData;
+const csvToDataFunctions = {
+    [KEY_CSV_KIMBIL]: kimbilCsvToData,
+    [KEY_CSV_WOLVOX]: wolvoxCsvToData,
+};
 
 /**
  * Replaces all occurences of given string within other given string with third given string.
@@ -242,7 +161,7 @@ const commonStringSimplify = (s) => {
 
 /**
  * Validates raw csv input for kimbil csv, also handling validation error display.
- * @param {string} lines The raw csv lines
+ * @param {string[][]} lines The raw csv lines
  * @param {function} printValidationError The function for printing validation errors
  * @param {function} resetValidationError The function for resetting validation error display
  */
@@ -279,7 +198,7 @@ const equalsOne = (needle, arrayOfHaystacks) => {
 
 /**
  * Validates raw csv input for wolvox csv, also handling validation error display.
- * @param {string} lines The raw csv lines
+ * @param {string[][]} lines The raw csv lines
  * @param {function} printValidationError The function for printing validation errors
  * @param {function} resetValidationError The function for resetting validation error display
  */
@@ -332,21 +251,10 @@ const handleWolvoxRowError = (index, name, printValidationError) => {
     return false;
 };
 
-/**
- * For given key, returns the respective validation function.
- * @param {string} key The realm key, e.g. the WOLVOX key
- * @returns {function} The respective validation function.
- */
-const csvRawCsvValidationFunctions = (key) => {
-    switch (key) {
-        case KEY_CSV_KIMBIL:
-            return kimbilCsvRawCsvValidationFunction;
-        case KEY_CSV_WOLVOX:
-            return wolvoxCsvRawCsvValidationFunction;
-        default:
-            throw new Error("Key unknown: " + key);
-    }
-}
+const csvRawCsvValidationFunctions = {
+    [KEY_CSV_KIMBIL]: kimbilCsvRawCsvValidationFunction,
+    [KEY_CSV_WOLVOX]: wolvoxCsvRawCsvValidationFunction,
+};
 
 /**
  * Class handling conversion of data from CSV to entry object.
@@ -388,7 +296,8 @@ export class DataConverter {
         if (raw) {
             const fullData = [];
             const data = extractCsv(raw);
-            csvRawCsvValidationFunctions(key)(data, this.printValidationErrorFunction, this.resetValidationErrorFunction);
+            const validateFn = csvRawCsvValidationFunctions[key];
+            validateFn(data, this.printValidationErrorFunction, this.resetValidationErrorFunction);
             console.log(key, "raw", data);
             let isFirst = true;
             for (let entry of data) {
@@ -402,7 +311,11 @@ export class DataConverter {
                     continue;
                 }
                 const compiled = csvToDataFunctions[key](entry);
-                fullData.push(compiled);
+                if(compiled.isValid) {
+                    fullData.push(compiled);
+                } else {
+                    console.warn(`Not adding invalid line to data set: ${entry.join(', ')}`);
+                }
             }
             let maxOdaNoLength = 0;
             fullData.forEach(data => {
