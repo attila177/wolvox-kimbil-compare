@@ -28,10 +28,14 @@
     "react-scripts": "^3.4.1",
     "redux": "^4.0.0"
   },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
+  },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test --env=jsdom",
+    "test:continuous": "react-scripts test --env=jsdom",
+    "test:once": "react-scripts test --env=jsdom --watchAll=false --forceExit",
     "eject": "react-scripts eject"
   },
   "homepage": "/wkc",
