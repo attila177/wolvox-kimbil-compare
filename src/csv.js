@@ -1,4 +1,7 @@
+import { consoleMock } from './commontest';
+
 const cellSeparators = [";", "\t", ","];
+const logger = consoleMock;
 
 /**
  * @param {string} needle 
@@ -52,7 +55,7 @@ const cellSeparatorScore = (lines, cellSeparator) => {
     });
     const prevalenceScore = keyWithHighestValue;
     const score = 10 * consistencyScore + prevalenceScore;
-    console.log("Cell separator", cellSeparator, "scored", score, "with", amounts, amountList);
+    logger.log("Cell separator", cellSeparator, "scored", score, "with", amounts, amountList);
     return score;
 }
 
@@ -72,7 +75,7 @@ const detectCellSeparator = (lines) => {
             cellSeparatorWithHighestScore = cellSeparator;
         }
     }
-    console.log("Chose cell separator", cellSeparatorWithHighestScore, "after analysis", cellSeparatorScores);
+    logger.log("Chose cell separator", cellSeparatorWithHighestScore, "after analysis", cellSeparatorScores);
     return cellSeparatorWithHighestScore;
 }
 
@@ -87,8 +90,9 @@ export const extractCsv = (rawFileContent) => {
     const cellSeparator = detectCellSeparator(lines);
 
     for (let line of lines) {
-        const sub = line.split(cellSeparator);
-        result.push(sub);
+        const cells = line.split(cellSeparator);
+        result.push(cells.map(cell => cell.trim()));
     }
+    console.log(`Extracted matrix with ${result.length} lines. First line has ${result[0].length} cells`);
     return result;
 };

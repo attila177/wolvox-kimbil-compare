@@ -1,5 +1,7 @@
+import { consoleMock } from './commontest';
 import { KEY_CSV_KIMBIL, KEY_CSV_WOLVOX } from './common';
 import { fullEventMaker } from './reducers/reducer';
+const logger = consoleMock;
 
 /**
  * Uses string.localeCompare() to compare the given strings
@@ -18,6 +20,67 @@ export const stringCompare = (a, b) => {
  * @returns {boolean} Whether === or contains(a,b) or contains(b,a) returns true
  */
 const resemble = (s1, s2) => {
+    return s1 === s2 || contains(s1, s2) || contains(s2, s1);
+};
+
+/** @param {string} input */
+const reduceStars = (input) => {
+    if (!input) {
+        return input;
+    }
+    return input.replace(/[*]+/g, '+')
+}
+
+
+/** @param {string} input */
+const mimicNameAnonymization = (input) => {
+    return input.split(' ').map(substr => substr.substring(0, 2)).join('***** ') + '*****';
+};
+
+/**
+ * @param {string} input1 The first string of the comparison (will be called once for each of kimbil and wolvox)
+ * @param {string} input2 The second string of the comparison (will be called once for each of kimbil and wolvox)
+ */
+const resembleDespiteNameAnonymization = (input1, input2) => {
+    let s1;
+    let s2;
+    if (input1.includes('*') && !input2.includes('*')) {
+        s1 = reduceStars(input1);
+        s2 = reduceStars(mimicNameAnonymization(input2));
+    } else if (!input1.includes('*') && input2.includes('*')) {
+        s1 = reduceStars(mimicNameAnonymization(input1));
+        s2 = reduceStars(input2);
+    }
+    
+    return s1 === s2 || contains(s1, s2) || contains(s2, s1);
+};
+
+
+/** @param {string} input */
+const mimicIdentityNoAnonymization = (input) => {
+    if (input && input.length > 5) {
+        const anonStars = new Array(input.length - 4).join('*');
+        return `${input.substring(0,2)}${anonStars}${input.substring(input.length - 3)}`;
+    } else {
+        return input;
+    }
+};
+
+/**
+ * @param {string} input1 The first string of the comparison (will be called once for each of kimbil and wolvox)
+ * @param {string} input2 The second string of the comparison (will be called once for each of kimbil and wolvox)
+ */
+const resembleDespiteIdentityNoAnonymization = (input1, input2) => {
+    let s1;
+    let s2;
+    if (input1.includes('*') && !input2.includes('*')) {
+        s1 = reduceStars(input1);
+        s2 = reduceStars(mimicIdentityNoAnonymization(input2));
+    } else if (!input1.includes('*') && input2.includes('*')) {
+        s1 = reduceStars(mimicIdentityNoAnonymization(input1));
+        s2 = reduceStars(input2);
+    }
+    
     return s1 === s2 || contains(s1, s2) || contains(s2, s1);
 };
 
@@ -46,21 +109,39 @@ const numbersResemble = (s1, s2) => {
 };
 
 /**
+ * @param {import('./convert').GuestEntry} entry 
+ */
+const getIdentityNo = (entry) => {
+    if (!entry.uyruk) {
+      const guess = entry.kimlikNo || entry.gecerliBelge || ''; 
+      if (entry.kimlikNo && entry.gecerliBelge) {
+        logger.warn(`Guessing identity no ${guess} for`, entry);
+      }
+      return guess;
+    } else if (entry.uyruk === 'TÜRKİYE' || entry.uyruk === 'TC') {
+        return entry.kimlikNo || '';
+    } else {
+        return entry.gecerliBelge || '';
+    }
+}
+
+/**
  * Compares two entries.
  * @param {object} baseEntry The first entry of the comparison 
  * @param {object} otherEntry The second entry of the comparison
  * @returns {boolean} true iff numbersResemble(odaNo) && resemble(adi) && resemble(soyadi)
  */
-const compareEntries = (baseEntry, otherEntry) => {
-    const oda = numbersResemble(baseEntry.odaNo, otherEntry.odaNo);
-    const adi = resemble(baseEntry.adi_simple, otherEntry.adi_simple);
-    const soyadi = resemble(baseEntry.soyadi_simple, otherEntry.soyadi_simple);
-    if (oda && adi && soyadi) {
-        console.log("Found match:", baseEntry, otherEntry);
+export const compareEntries = (baseEntry, otherEntry) => {
+    const odaMatch = numbersResemble(baseEntry.odaNo, otherEntry.odaNo);
+    const adiMatch = resembleDespiteNameAnonymization(baseEntry.adi_simple, otherEntry.adi_simple);
+    const soyadiMatch = resembleDespiteNameAnonymization(baseEntry.soyadi_simple, otherEntry.soyadi_simple);
+    const identityNoMatch = resembleDespiteIdentityNoAnonymization(getIdentityNo(baseEntry), getIdentityNo(otherEntry));
+    if (odaMatch && adiMatch && soyadiMatch && identityNoMatch) {
+        logger.log("Found match:", baseEntry, otherEntry);
         return true;
     }
-    if (oda || adi || soyadi) {
-        // console.log("Partial match:", baseEntry, otherEntry, oda, adi, soyadi);
+    if ([odaMatch, adiMatch, soyadiMatch, identityNoMatch].filter(Boolean).length > 1) {
+        logger.log("Partial match:", baseEntry, otherEntry);
     }
     return false;
 };
@@ -73,7 +154,7 @@ const compareEntries = (baseEntry, otherEntry) => {
  * @param {string} otherKey The key of the other realm with which to compare
  * @returns {array} The processed data for given realm
  */
-const compareOne = (that, fullData, key, otherKey) => {
+const compareOne = (fullData, key, otherKey) => {
     const baseData = fullData[key];
     const otherData = fullData[otherKey];
     let newData = [];
@@ -103,13 +184,12 @@ const compareOne = (that, fullData, key, otherKey) => {
 
 /**
  * Searches similar entries for all previously non-matched entries of the data of one realm.
- * @param {object} that Not needed
  * @param {object} fullData The container containing data of all realms
  * @param {string} key The key of the realm to compare all entries of
  * @param {string} otherKey The key of the other realm with which to compare
  * @returns {array} The processed data for given realm
  */
-const searchSimilarForOne = (that, fullData, key, otherKey) => {
+const searchSimilarForOne = (fullData, key, otherKey) => {
     const baseData = fullData[key];
     const otherData = fullData[otherKey];
     let newData = [];
@@ -132,22 +212,22 @@ const searchSimilarForOne = (that, fullData, key, otherKey) => {
                     }
                 }
                 if (bestCandidate && minDistance < 3) {
-                    console.log("Found a similar entry with levenshtein to", newEntry, minDistance, bestCandidate);
+                    logger.log("Found a similar entry with levenshtein to", newEntry, minDistance, bestCandidate);
                     if (numbersResemble(baseEntry.odaNo, bestCandidate.odaNo)) {
-                        console.log("Numbers resemble: mark as similar", newEntry, bestCandidate);
+                        logger.log("Numbers resemble: mark as similar", newEntry, bestCandidate);
                         newEntry.similarFound = true;
                     } else {
                         if (minDistance === 0) {
-                            console.log("Numbers do not resemble, but names are identical: mark as same name different room", newEntry, bestCandidate);
+                            logger.log("Numbers do not resemble, but names are identical: mark as same name different room", newEntry, bestCandidate);
                             newEntry.sameNameButDifferentRoomNoFound = true;
                         }
                     }
                 } else {
-                    console.log("Could not find a similar entry with levenshtein!");
+                    logger.log("Could not find a similar entry with levenshtein!");
                     newEntry.similarFound = false;
                     for (let otherEntry of otherData) {
                         if (otherEntry.notInOther && numbersResemble(baseEntry.odaNo, otherEntry.odaNo) && resemble(baseEntry.adi_simple, otherEntry.adi_simple)) {
-                            console.log("Found a similar entry with roomNo & firstName to", newEntry, otherEntry);
+                            logger.log("Found a similar entry with roomNo & firstName to", newEntry, otherEntry);
                             newEntry.sameRoomNoAndFirstNameFound = true;
                             break;
                         }
@@ -167,12 +247,16 @@ const searchSimilarForOne = (that, fullData, key, otherKey) => {
  * @param {object} that Needed for the dispatch function
  * @param {object} fullData The unprocessed data
  */
-export const compareAllCsvData = (that, fullData) => {
+export const compareAllCsvData = (that) => {
+    const fullData = {
+        [KEY_CSV_KIMBIL]: that.converters[KEY_CSV_KIMBIL]?.convertOneCsvData(that),
+        [KEY_CSV_WOLVOX]: that.converters[KEY_CSV_WOLVOX]?.convertOneCsvData(that)
+    }
     let dataCopy = { ...fullData };
-    dataCopy[KEY_CSV_KIMBIL] = compareOne(that, dataCopy, KEY_CSV_KIMBIL, KEY_CSV_WOLVOX);
-    dataCopy[KEY_CSV_WOLVOX] = compareOne(that, dataCopy, KEY_CSV_WOLVOX, KEY_CSV_KIMBIL);
-    dataCopy[KEY_CSV_KIMBIL] = searchSimilarForOne(that, dataCopy, KEY_CSV_KIMBIL, KEY_CSV_WOLVOX);
-    dataCopy[KEY_CSV_WOLVOX] = searchSimilarForOne(that, dataCopy, KEY_CSV_WOLVOX, KEY_CSV_KIMBIL);
+    dataCopy[KEY_CSV_KIMBIL] = compareOne(dataCopy, KEY_CSV_KIMBIL, KEY_CSV_WOLVOX);
+    dataCopy[KEY_CSV_WOLVOX] = compareOne(dataCopy, KEY_CSV_WOLVOX, KEY_CSV_KIMBIL);
+    dataCopy[KEY_CSV_KIMBIL] = searchSimilarForOne(dataCopy, KEY_CSV_KIMBIL, KEY_CSV_WOLVOX);
+    dataCopy[KEY_CSV_WOLVOX] = searchSimilarForOne(dataCopy, KEY_CSV_WOLVOX, KEY_CSV_KIMBIL);
     that.props.dispatch(fullEventMaker(dataCopy));
 };
 

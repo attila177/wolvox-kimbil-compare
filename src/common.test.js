@@ -8,7 +8,6 @@ const debugCopy = function () {
     }
     let toLog = "";
     for (let arg of arguments) {
-        console.log("ARG", typeof arg, arg);
         toLog += ((typeof arg === "string") ? arg : JSON.stringify(arg));
     }
     return toLog;

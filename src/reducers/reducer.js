@@ -1,8 +1,11 @@
+import { consoleMock } from '../commontest';
+
 const initialState = {
     global: {}
 };
 const stateChangerEventPostfix = "CHANGER";
 const fullStateChangerEventKey = "FULLSTATE" + stateChangerEventPostfix;
+const logger = consoleMock;
 
 /**
  * Generates an event object for saving partial data under a given key.
@@ -48,19 +51,19 @@ export const rootReducer = (state = initialState, action) => {
     };
 
     if (action.type.indexOf(stateChangerEventPostfix) === action.type.length - stateChangerEventPostfix.length) {
-        console.log("Writing to global state in reducer", action.payload);
+        logger.log("Writing to global state in reducer", action.payload);
         if (action.type === fullStateChangerEventKey) {
             applyFullGlobalState(action.payload);
         } else {
             applyToGlobalState(action.key, action.payload);
         }
     } else {
-        console.log("A non-changer event", action);
+        logger.log("A non-changer event", action);
     }
     if (!touched) {
-        console.log("No change in state");
+        logger.log("No change in state");
         return state;
     }
-    console.log("Reduced state to ", newState, "after action", action);
+    logger.log("Reduced state to ", newState, "after action", action);
     return newState;
 };

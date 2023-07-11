@@ -24,3 +24,5 @@ scenario*.csv
 copy.sh
 
 /sample-data
+
+test_*.json

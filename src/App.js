@@ -32,24 +32,18 @@ class App extends Component {
 
   constructor(props) {
     super();
-    this.rawData = {};
-    this.converter = new DataConverter(printValidationError, resetValidationError);
     this.state = {
       showAll: false,
     };
+    this.converters = {};
   }
 
   /**
    * Returns JSX for a file reader for given realm ID (e.g. WOLVOX realm id)
-   * @param {string} id The realm ID for which the file reader should be generated
-   * @returns {object} The JSX for the file reader, writing file contents into
-   * this.rawData and triggering conversion and comparison
+   * @param {import('./common').DataSourceTypeKey} dataSourceTypeKey The realm ID for which the file reader should be generated
+   * @returns {object} The JSX for the file reader, triggering conversion and comparison
    */
-  fileReader(id) {
-    if (!this.rawData) {
-      this.rawData = {};
-    }
-    let rawData = this.rawData;
+  fileReader(dataSourceTypeKey) {
     const that = this;
     const read = (inPar1) => {
       const file = inPar1.target.files[0];
@@ -57,18 +51,18 @@ class App extends Component {
       const reader = new FileReader();
       reader.readAsText(file, 'ISO-8859-1');
       reader.onload = function (evt) {
-        console.log("Read file:", evt.target.result);
-        rawData[id] = evt.target.result;
-        document.getElementById(`{id}-present`).textContent = "Loaded.";
-        let fullData = that.converter.convertAllCsvData(that);
-        compareAllCsvData(that, fullData);
+        const result = evt.target.result?.toString();
+        console.log("Read file:", file);
+        document.getElementById(`${dataSourceTypeKey}-present`).textContent = "Loaded.";
+        that.converters[dataSourceTypeKey] = new DataConverter(printValidationError, resetValidationError, dataSourceTypeKey, result, console);
+        compareAllCsvData(that);
       }
       reader.onerror = function (evt) {
         console.log("error", evt);
       }
     };
-    const dataIsPresent = <div id={`{id}-present`} ></div >;
-    return <div>{id}: <br /><input type="file" id={id} onChange={read} /> {dataIsPresent} <br />
+    const dataIsPresent = <div id={`${dataSourceTypeKey}-present`} ></div >;
+    return <div>{dataSourceTypeKey}: <br /><input type="file" id={dataSourceTypeKey} onChange={read} /> {dataIsPresent} <br />
     </div>;
   }
 
@@ -123,3 +117,7 @@ const mapDispatchToProps = function (dispatch) {
  * The root react object for this app
  */
 export default connect(mapStateToProps, mapDispatchToProps)(App);
+
+/**
+ * @typedef {typeof App} MainApp
+ */

@@ -1,92 +1,77 @@
-import { KEY_CSV_KIMBIL, KEY_CSV_WOLVOX } from './common';
+import { KEY_CSV_KIMBIL, KEY_CSV_WOLVOX, isNumberlike } from './common';
 import { stringCompare } from './compare';
 import { eventMaker } from './reducers/reducer';
 import { extractCsv } from './csv';
+import FIELDS from './guest-data';
 
-let WOLVOX_ODA_NO_INDEX = -1;
-let WOLVOX_ADI_INDEX = -1;
-let WOLVOX_SOYADI_INDEX = -1;
-let WOLVOX_GIRIS_INDEX = -1;
-let WOLVOX_CIKIS_INDEX = -1;
+/** @typedef {import('./common').DataSourceTypeKey} DataSourceTypeKey */
 
-const WOLVOX_ODA_NO_ROW_HEADERS = ["Oda No"];
-const WOLVOX_ADI_ROW_HEADERS = ["Adý", "Adı"];
-const WOLVOX_SOYADI_ROW_HEADERS = ["Soyadý", "Soyadı"];
-const WOLVOX_GIRIS_ROW_HEADERS = ["Giriþ Tarihi", "Giriş Tarihi"];
-const WOLVOX_CIKIS_ROW_HEADERS = ["Çýkýþ Tarihi", "Çıkış Tarihi"];
+/** @type {{[typeKey: string]: {[keyKey: string]: string[]}}} */
+const ROW_HEADERS = {
+    [KEY_CSV_KIMBIL]: {
+        odaNo: ['VerilenOda'],
+        adi: ['Adi'],
+        soyadi: ['Soyadi'],
+        giris: ['GelisTarihi'],
+        cikis: [],
+        gecerliBelge: ['GecerliBelge'],
+        kimlikNo: ['KimlikNo'],
+        uyruk: ['UAdi']
+    },
+    [KEY_CSV_WOLVOX]: {
+        odaNo: ['Oda No', 'OdaNo'],
+        adi: ['Adý', 'Adı', 'Ad�', 'Adï¿½'],
+        soyadi: ['Soyadý', 'Soyadı', 'Soyad�', 'Soyadï¿½'],
+        giris: ['Giriþ Tarihi', 'Giriş Tarihi', 'Giri� Tarihi', 'Giriï¿½Tarihi'],
+        cikis: ['Çýkýþ Tarihi', 'Çıkış Tarihi', '��k�� Tarihi', 'ï¿½ï¿½kï¿½ï¿½Tarihi'],
+        gecerliBelge: ['H�viyet No', 'Hüviyet No', 'Hï¿½viyetNo'],
+        kimlikNo: ['TC Kimlik No', 'TCKimlikNo'],
+        uyruk: ['Uyruğu', 'Uyru�u', 'Uyruðu']
+    },
+}
 
-const KIMBIL_ODA_NO_INDEX = 9;
-const KIMBIL_ADI_INDEX = 0;
-const KIMBIL_SOYADI_INDEX = 7;
-const KIMBIL_GIRIS_INDEX = 4;
+/**
+ * @typedef {Object} GuestEntryInput
+ * @property {string} odaNo The room number
+ * @property {string} adi The first name (with special characters)
+ * @property {string} adi_simple The first name (without special characters)
+ * @property {string} soyadi The last name (with special characters)
+ * @property {string} soyadi_simple The last name (without special characters)
+ * @property {string} giris A string representation of the date of arrival
+ * @property {string} cikis A string representation of the date of departure
+ * @property {string} gecerliBelge
+ * @property {string} kimlikNo
+ * @property {string} uyruk
+ */
+
+/**
+ * @typedef {GuestEntryInput & {isValid: boolean}} GuestEntry
+ */
+
 
 /**
  * Creates an entry object with given data.
- * @param {string} odaNo The room number
- * @param {string} adi The first name (with special characters)
- * @param {string} adi_simple The first name (without special characters)
- * @param {string} soyadi The last name (with special characters)
- * @param {string} soyadi_simple The last name (without special characters)
- * @param {string} giris A string representation of the date of arrival
- * @param {string} cikis A string representation of the date of departure
- * @returns The entry object
+ * @param {GuestEntryInput} param0
+ * @returns {GuestEntry} The entry object
  */
-const toData = (odaNo, adi, adi_simple, soyadi, soyadi_simple, giris, cikis) => {
+const toData = ({odaNo, adi, adi_simple, soyadi, soyadi_simple, giris, cikis, gecerliBelge, kimlikNo, uyruk}) => {
     const isValid = !!(adi && soyadi);
     return {
-        odaNo: odaNo,
-        adi: adi,
-        soyadi: soyadi,
-        giris: giris,
-        cikis: cikis,
-        adi_simple: adi_simple,
-        soyadi_simple: soyadi_simple,
+        odaNo,
+        adi,
+        soyadi,
+        giris,
+        cikis,
+        adi_simple,
+        soyadi_simple,
         isValid,
+        gecerliBelge,
+        kimlikNo,
+        uyruk
     };
 };
 
-/**
- * Converts a line from the wolvox csv into an entry object.
- * @param {string[]} line A line from the wolvox csv
- * @returns The resulting entry object
- */
-const wolvoxCsvToData = (line) => {
-    if (line.length < 2) {
-        return;
-    }
-    const result = toData(
-        commonStringConvert(line[WOLVOX_ODA_NO_INDEX] + ""),
-        commonStringConvert(line[WOLVOX_ADI_INDEX]),
-        commonStringSimplify(line[WOLVOX_ADI_INDEX]),
-        commonStringConvert(line[WOLVOX_SOYADI_INDEX]),
-        commonStringSimplify(line[WOLVOX_SOYADI_INDEX]),
-        commonStringSimplify(line[WOLVOX_GIRIS_INDEX]),
-        line[WOLVOX_CIKIS_INDEX]);
-    console.log("wolvox to data", result);
-    return result;
-};
 
-/**
- * Converts a line from the kimbil csv into an entry object.
- * @param {string[]} line A line from the kimbil csv
- * @returns The resulting entry object
- */
-const kimbilCsvToData = (line) => {
-    const result = toData(
-        commonStringConvert(line[KIMBIL_ODA_NO_INDEX] + ""),
-        commonStringConvert(line[KIMBIL_ADI_INDEX]),
-        commonStringSimplify(line[KIMBIL_ADI_INDEX]),
-        commonStringConvert(line[KIMBIL_SOYADI_INDEX]),
-        commonStringSimplify(line[KIMBIL_SOYADI_INDEX]),
-        line[KIMBIL_GIRIS_INDEX], "-");
-    console.log("kimbil to data", result);
-    return result;
-};
-
-const csvToDataFunctions = {
-    [KEY_CSV_KIMBIL]: kimbilCsvToData,
-    [KEY_CSV_WOLVOX]: wolvoxCsvToData,
-};
 
 /**
  * Replaces all occurences of given string within other given string with third given string.
@@ -126,6 +111,7 @@ const commonStringConvert = (s) => {
     s = replaceAll(s, "š", "Ü");
     s = replaceAll(s, "™", 'Ö');
     s = replaceAll(s, "€", 'Ç');
+    // s = replaceAll(s, "ï¿½", 'ı');
     return s;
 };
 
@@ -156,6 +142,7 @@ const commonStringSimplify = (s) => {
     s = replaceAll(s, "İ", 'I');
     s = replaceAll(s, "Ä", 'A');
     s = replaceAll(s, "Ş", 'S');
+    s = replaceAll(s, "�", 'U');
     return s;
 };
 
@@ -166,15 +153,15 @@ const commonStringSimplify = (s) => {
  * @param {function} resetValidationError The function for resetting validation error display
  */
 const kimbilCsvRawCsvValidationFunction = (lines, printValidationError, resetValidationError) => {
-    console.log("Validating kimbil raw csv", lines);
+    // console.log("Validating kimbil raw csv", lines);
     let err = false;
     resetValidationError(KEY_CSV_KIMBIL);
     if (lines[0][0] !== "Adi") {
         printValidationError(KEY_CSV_KIMBIL, `CSV file uploaded for kimbil is not valid: First row should be 'Adi', but is '${lines[0][0]}'!!`);
         err = true;
     }
-    if (lines[0].length !== 10) {
-        printValidationError(KEY_CSV_KIMBIL, `CSV file uploaded for kimbil is not valid: There should be 10 columns, but there are ${lines[0].length}!`);
+    if (lines[0].length !== 9) {
+        printValidationError(KEY_CSV_KIMBIL, `CSV file uploaded for kimbil is not valid: There should be 9 columns, but there are ${lines[0].length}!`);
         err = true;
     }
     if (!err) {
@@ -197,46 +184,6 @@ const equalsOne = (needle, arrayOfHaystacks) => {
 }
 
 /**
- * Validates raw csv input for wolvox csv, also handling validation error display.
- * @param {string[][]} lines The raw csv lines
- * @param {function} printValidationError The function for printing validation errors
- * @param {function} resetValidationError The function for resetting validation error display
- */
-const wolvoxCsvRawCsvValidationFunction = (lines, printValidationError, resetValidationError) => {
-    console.log("Validating wolvox raw csv", lines);
-    const firstLine = lines[0];
-    let i = 0;
-    for (let rowHeader of firstLine) {
-
-        if (equalsOne(rowHeader, WOLVOX_ODA_NO_ROW_HEADERS)) {
-            WOLVOX_ODA_NO_INDEX = i;
-        } else if (equalsOne(rowHeader, WOLVOX_ADI_ROW_HEADERS)) {
-            WOLVOX_ADI_INDEX = i;
-        } else if (equalsOne(rowHeader, WOLVOX_SOYADI_ROW_HEADERS)) {
-            WOLVOX_SOYADI_INDEX = i;
-        } else if (equalsOne(rowHeader, WOLVOX_GIRIS_ROW_HEADERS)) {
-            WOLVOX_GIRIS_INDEX = i;
-        } else if (equalsOne(rowHeader, WOLVOX_CIKIS_ROW_HEADERS)) {
-            WOLVOX_CIKIS_INDEX = i;
-        } else {
-            console.log("could not find matching rowHeader for", rowHeader);
-        }
-
-        i++;
-    }
-    let err = false;
-    resetValidationError(KEY_CSV_WOLVOX);
-    err = err || handleWolvoxRowError(WOLVOX_ODA_NO_INDEX, "Oda No", printValidationError);
-    err = err || handleWolvoxRowError(WOLVOX_ADI_INDEX, "Ad", printValidationError);
-    err = err || handleWolvoxRowError(WOLVOX_SOYADI_INDEX, "Soyad", printValidationError);
-    err = err || handleWolvoxRowError(WOLVOX_GIRIS_INDEX, "Giris", printValidationError);
-    err = err || handleWolvoxRowError(WOLVOX_CIKIS_INDEX, "Cikis", printValidationError);
-    if (!err) {
-        resetValidationError(KEY_CSV_WOLVOX);
-    }
-};
-
-/**
  * Handles output to validation error field if row index is invalid.
  * @param {number} index The row index (result of detection algorithm)
  * @param {string} name The displayable name of the row
@@ -251,10 +198,6 @@ const handleWolvoxRowError = (index, name, printValidationError) => {
     return false;
 };
 
-const csvRawCsvValidationFunctions = {
-    [KEY_CSV_KIMBIL]: kimbilCsvRawCsvValidationFunction,
-    [KEY_CSV_WOLVOX]: wolvoxCsvRawCsvValidationFunction,
-};
 
 /**
  * Class handling conversion of data from CSV to entry object.
@@ -263,63 +206,174 @@ export class DataConverter {
     /**
      * @param {function} printValidationErrorFunction The function for printing validation errors
      * @param {function} resetValidationErrorFunction The function for resetting validation error display
+     * @param {DataSourceTypeKey} dataSourceTypeKey
+     * @param {string} rawCsvContent
      */
-    constructor(printValidationErrorFunction, resetValidationErrorFunction) {
+    constructor(printValidationErrorFunction, resetValidationErrorFunction, dataSourceTypeKey, rawCsvContent, logger) {
         this.printValidationErrorFunction = printValidationErrorFunction;
         this.resetValidationErrorFunction = resetValidationErrorFunction;
+        this.dataSourceTypeKey = dataSourceTypeKey;
+        /** @type {{[key: string]: number}} */
+        this.indices = {};
+        this.validateFn = this.csvRawCsvValidationFunctions();
+        this.toDataFunction = this.csvToDataFunctions();
+        this.rawCsvContent = rawCsvContent;
+        if (this.rawCsvContent) {
+            /** @type {string[][]} */
+            this.dataMatrix = extractCsv(this.rawCsvContent);
+            this.initializeIndices();
+        }
+        this.logger = logger;
     }
 
     /**
-     * Converts CSV data into entry objects, dispatching events
-     * for saving the resulting data.
-     * @param {object} that The object containing the dispatch function
-     * @returns {object} a container containing the converted data
+     * @param {DataSourceTypeKey} dataSourceTypeKey 
+     * @param {string[]} firstLineCells 
      */
-    convertAllCsvData(that) {
-        let fullData = {};
-        let dataKimbil = this.convertOneCsvData(that, KEY_CSV_KIMBIL);
-        let dataWolvox = this.convertOneCsvData(that, KEY_CSV_WOLVOX);
-        fullData[KEY_CSV_KIMBIL] = dataKimbil;
-        fullData[KEY_CSV_WOLVOX] = dataWolvox;
-        return fullData;
+    initializeIndices () {
+        if (!this.dataMatrix[0]) {
+            this.logger.error('Error')
+            return;
+        }
+        const headerCells = this.dataMatrix[0]
+        headerCells.forEach((cellContent, index) => {
+            const match = Object.keys(FIELDS).find((name) => {
+                return equalsOne(cellContent, ROW_HEADERS[this.dataSourceTypeKey][name])
+            });
+            if (match) {
+                this.indices[match] = index;
+            } else {
+                // this.logger.log("could not find matching rowHeader for", cellContent, 'in', this.dataSourceTypeKey);
+            }
+        });
+        const requiredFieldsNames = Object.entries(FIELDS).filter(([_name, props]) => props.required).map(([name, _props]) => name);
+        const missing = requiredFieldsNames.filter((name) => this.indices[name] === undefined);
+        if (missing.length) {
+            throw new Error(`No index found for required rows ${missing} in ${headerCells}`);
+        }
     }
+
+    /**
+     * Converts a line from the kimbil csv into an entry object.
+     * @param {string[]} line A line from the kimbil csv
+     * @returns The resulting entry object
+     */
+    kimbilCsvToData (line) {
+        const adi = line[this.indices.adi];
+        const soyadi = line[this.indices.soyadi];
+        const odaRaw = line[this.indices.odaNo];
+        const odaNo = commonStringConvert(odaRaw + "");
+        const result = toData({
+            odaNo,
+            adi: commonStringConvert(adi),
+            adi_simple: commonStringSimplify(adi),
+            soyadi: commonStringConvert(soyadi),
+            soyadi_simple: commonStringSimplify(soyadi),
+            giris: line[this.indices.giris],
+            cikis: "-",
+            gecerliBelge: commonStringConvert(line[this.indices.gecerliBelge]),
+            kimlikNo: commonStringConvert(line[this.indices.kimlikNo]),
+            uyruk: commonStringConvert(line[this.indices.uyruk]),
+        });
+        this.logger.log("kimbil to data", result);
+        return result;
+    }
+
+    /**
+     * Converts a line from the wolvox csv into an entry object.
+     * @param {string[]} line A line from the wolvox csv
+     * @returns The resulting entry object
+     */
+    wolvoxCsvToData (line) {
+        if (line.length < 2) {
+            return;
+        }
+        const adi = line[this.indices.adi];
+        const soyadi = line[this.indices.soyadi];
+        const result = toData({
+            odaNo: commonStringConvert(line[this.indices.odaNo] + ""),
+            adi: commonStringConvert(adi),
+            adi_simple: commonStringSimplify(adi),
+            soyadi: commonStringConvert(soyadi),
+            soyadi_simple: commonStringSimplify(soyadi),
+            giris: commonStringConvert(line[this.indices.giris]),
+            cikis: commonStringConvert(line[this.indices.cikis]),
+            gecerliBelge: commonStringConvert(line[this.indices.gecerliBelge]),
+            kimlikNo: commonStringConvert(line[this.indices.kimlikNo]),
+            uyruk: commonStringConvert(line[this.indices.uyruk])
+            });
+        this.logger.log("wolvox to data", result);
+        return result;
+    };
+
+    csvToDataFunctions () {
+        switch (this.dataSourceTypeKey) {
+            case KEY_CSV_KIMBIL: return this.kimbilCsvToData;
+            case KEY_CSV_WOLVOX: return this.wolvoxCsvToData;
+            default: throw new Error('could not find csv to data function');
+        }
+    };
+
+    csvRawCsvValidationFunctions () {
+        switch (this.dataSourceTypeKey) {
+            case KEY_CSV_KIMBIL: return kimbilCsvRawCsvValidationFunction;
+            case KEY_CSV_WOLVOX: return this.wolvoxCsvRawCsvValidationFunction;
+            default: throw new Error('could not find csv validation function');
+        }
+    };
+
+    /**
+     * Validates raw csv input for wolvox csv, also handling validation error display.
+     * @param {string[][]} lines The raw csv lines
+     * @param {function} printValidationError The function for printing validation errors
+     * @param {function} resetValidationError The function for resetting validation error display
+     */
+    wolvoxCsvRawCsvValidationFunction (lines, printValidationError, resetValidationError) {
+        this.logger.log("Validating wolvox raw csv", lines);
+        let err = false;
+        resetValidationError(KEY_CSV_WOLVOX);
+        err = err || handleWolvoxRowError(this.indices.odaNo, "Oda No", printValidationError);
+        err = err || handleWolvoxRowError(this.indices.adi, "Ad", printValidationError);
+        err = err || handleWolvoxRowError(this.indices.soyadi, "Soyad", printValidationError);
+        err = err || handleWolvoxRowError(this.indices.giris, "Giris", printValidationError);
+        err = err || handleWolvoxRowError(this.indices.cikis, "Cikis", printValidationError);
+        if (!err) {
+            resetValidationError(KEY_CSV_WOLVOX);
+        }
+    };
 
     /**
      * Converts CSV data into entry objects for one realm, dispatching an event
      * for saving the resulting data.
-     * @param {object} that The object containing the dispatch function
-     * @param {string} key The realm key for which to carry out the process
+     * @param {import('./App').MainApp} that The object containing the dispatch function
      * @returns {array} the converted data
      */
-    convertOneCsvData(that, key) {
-        const raw = that.rawData[key];
-        if (raw) {
+    convertOneCsvData(that) {
+        if (this.dataMatrix) {
             const fullData = [];
-            const data = extractCsv(raw);
-            const validateFn = csvRawCsvValidationFunctions[key];
-            validateFn(data, this.printValidationErrorFunction, this.resetValidationErrorFunction);
-            console.log(key, "raw", data);
+            this.validateFn(this.dataMatrix, this.printValidationErrorFunction, this.resetValidationErrorFunction);
+            this.logger.log(this.dataSourceTypeKey, "raw", this.dataMatrix);
             let isFirst = true;
-            for (let entry of data) {
+            for (let entry of this.dataMatrix) {
                 if (isFirst) {
                     isFirst = false;
-                    console.log("Skipping first", entry);
+                    this.logger.log("Skipping first", entry);
                     continue;
                 }
                 if (entry.length < 2) {
-                    console.log("Skipping empty", entry);
+                    this.logger.log("Skipping empty", entry);
                     continue;
                 }
-                const compiled = csvToDataFunctions[key](entry);
+                const compiled = this.toDataFunction(entry);
                 if(compiled.isValid) {
                     fullData.push(compiled);
                 } else {
-                    console.warn(`Not adding invalid line to data set: ${entry.join(', ')}`);
+                    this.logger.warn(`Not adding invalid line to data set: ${entry.join(', ')}`);
                 }
             }
             let maxOdaNoLength = 0;
             fullData.forEach(data => {
-                if(maxOdaNoLength < data.odaNo.length) {
+                if(isNumberlike(data.odaNo) && maxOdaNoLength < data.odaNo.length) {
                     maxOdaNoLength = data.odaNo.length;
                 }
             });
@@ -328,7 +382,7 @@ export class DataConverter {
                     data.odaNo = `0${data.odaNo}`;
                 }
             });
-            console.log(key, "full", fullData);
+            this.logger.log(this.dataSourceTypeKey, "full", fullData);
             fullData.sort((a, b) => {
                 // soyadi, adi
                 if (a.soyadi_simple === b.soyadi_simple && a.odaNo === b.odaNo) {
@@ -339,8 +393,8 @@ export class DataConverter {
                 }
                 return stringCompare(a.odaNo, b.odaNo);
             });
-            console.log(key, "full sorted", fullData);
-            that.props.dispatch(eventMaker(key, fullData));
+            this.logger.log(this.dataSourceTypeKey, "full sorted", fullData);
+            that.props.dispatch(eventMaker(this.dataSourceTypeKey, fullData));
             return fullData;
         }
     }
