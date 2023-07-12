@@ -1,7 +1,6 @@
-import { consoleMock } from './commontest';
+import { logger } from './common';
 import { KEY_CSV_KIMBIL, KEY_CSV_WOLVOX } from './common';
 import { fullEventMaker } from './reducers/reducer';
-const logger = consoleMock;
 
 /** @typedef {import('./convert').GuestEntry} GuestEntry */
 

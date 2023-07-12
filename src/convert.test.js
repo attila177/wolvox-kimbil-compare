@@ -1,7 +1,6 @@
 import { DataConverter } from './convert';
 import {KEY_CSV_KIMBIL, KEY_CSV_WOLVOX} from './common';
 import fs from 'fs';
-import {consoleMock} from './commontest';
 
 describe('convert', () => {
 
@@ -15,7 +14,7 @@ describe('convert', () => {
     it('converts problematic wolvox', () => {
         const inputcsv = fs.readFileSync('./test/wolvox_problematic.csv').toString();
 
-        const dataConverter = new DataConverter(voidFn, voidFn, KEY_CSV_WOLVOX, inputcsv, consoleMock);
+        const dataConverter = new DataConverter(voidFn, voidFn, KEY_CSV_WOLVOX, inputcsv);
         const result = dataConverter.convertOneCsvData(that);
 
         expect(result.length).toEqual(2);
@@ -52,7 +51,7 @@ describe('convert', () => {
     it('converts 2023 kimbil data', () => {
         const inputKimbilCsv = fs.readFileSync('./test/2023_kimbil.csv').toString();
 
-        const dataConverter = new DataConverter(voidFn, voidFn, KEY_CSV_KIMBIL, inputKimbilCsv, consoleMock);
+        const dataConverter = new DataConverter(voidFn, voidFn, KEY_CSV_KIMBIL, inputKimbilCsv);
         const resultKimbil = dataConverter.convertOneCsvData(that);
 
         expect(resultKimbil.length).toEqual(2);
@@ -89,7 +88,7 @@ describe('convert', () => {
     it('converts 2023 wolvox data', () => {
         const inputWolvoxCsv = fs.readFileSync('./test/2023_wolvox.csv').toString();
 
-        const dataConverter = new DataConverter(voidFn, voidFn, KEY_CSV_WOLVOX, inputWolvoxCsv, consoleMock);
+        const dataConverter = new DataConverter(voidFn, voidFn, KEY_CSV_WOLVOX, inputWolvoxCsv);
         const resultWolvox = dataConverter.convertOneCsvData(that);
 
         expect(resultWolvox.length).toEqual(2);

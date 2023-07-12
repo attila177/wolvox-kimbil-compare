@@ -2,7 +2,6 @@ import { levDist, compareAllCsvData, compareEntries } from './compare';
 import { assertEquals } from './commontest';
 import { KEY_CSV_KIMBIL, KEY_CSV_WOLVOX } from './common';
 import { DataConverter } from './convert';
-import {consoleMock} from './commontest';
 import fs from 'fs';
 
 
@@ -38,8 +37,8 @@ describe('compareAllCsvData', () => {
             dispatch: (...args) => received.push(args),
         },
         converters: {
-            [KEY_CSV_KIMBIL]: new DataConverter(voidFn, voidFn, KEY_CSV_KIMBIL, inputKimbilCsv, consoleMock),
-            [KEY_CSV_WOLVOX]: new DataConverter(voidFn, voidFn, KEY_CSV_WOLVOX, inputWolvoxCsv, consoleMock),
+            [KEY_CSV_KIMBIL]: new DataConverter(voidFn, voidFn, KEY_CSV_KIMBIL, inputKimbilCsv),
+            [KEY_CSV_WOLVOX]: new DataConverter(voidFn, voidFn, KEY_CSV_WOLVOX, inputWolvoxCsv),
         }
     };
 

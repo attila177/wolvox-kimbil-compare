@@ -2,9 +2,8 @@ import { KEY_CSV_KIMBIL, KEY_CSV_WOLVOX, isNumberlike } from './common';
 import { stringCompare } from './compare';
 import { eventMaker } from './reducers/reducer';
 import { extractCsv } from './csv';
-import { consoleMock } from './commontest';
+import { logger } from './common';
 import FIELDS from './guest-data';
-const logger = consoleMock;
 
 /** @typedef {import('./common').DataSourceTypeKey} DataSourceTypeKey */
 

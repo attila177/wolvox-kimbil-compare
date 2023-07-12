@@ -1,15 +1,5 @@
 import fs from 'fs';
 
-export const consoleMock = 
-/*
-{
-  log: () => {},
-  warn: () => {},
-  error: () => {},
-}*/
-console
-;
-
 const orderObjectKeysRecursive = (obj) => {
   if (typeof obj === 'object') {
     if (Array.isArray(obj)) {

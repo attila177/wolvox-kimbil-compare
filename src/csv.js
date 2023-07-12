@@ -1,7 +1,6 @@
-import { consoleMock } from './commontest';
+import { logger } from './common';
 
 const cellSeparators = [";", "\t", ","];
-const logger = consoleMock;
 
 /**
  * @param {string} needle 

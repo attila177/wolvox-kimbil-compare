@@ -1,11 +1,10 @@
-import { consoleMock } from '../commontest';
+import { logger } from '../common';
 
 const initialState = {
     global: {}
 };
 const stateChangerEventPostfix = "CHANGER";
 const fullStateChangerEventKey = "FULLSTATE" + stateChangerEventPostfix;
-const logger = consoleMock;
 
 /**
  * Generates an event object for saving partial data under a given key.
