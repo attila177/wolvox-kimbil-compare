@@ -53,7 +53,7 @@ class App extends Component {
       reader.onload = function (evt) {
         const result = evt.target.result?.toString();
         logger.log("Read file:", file);
-        document.getElementById(`${dataSourceTypeKey}-present`).textContent = "Loaded.";
+        document.getElementById(`${dataSourceTypeKey}-present`).textContent = "Yüklendi.";
         that.converters[dataSourceTypeKey] = new DataConverter(printValidationError, resetValidationError, dataSourceTypeKey, result);
         compareAllCsvData(that);
       }
