@@ -2,7 +2,8 @@ import { logger } from './common';
 import { KEY_CSV_KIMBIL, KEY_CSV_WOLVOX } from './common';
 import { fullEventMaker } from './reducers/reducer';
 
-/** @typedef {import('./convert').GuestEntry} GuestEntry */
+/** @typedef {import('./guest-data').GuestEntry} GuestEntry */
+/** @typedef {import('./guest-data').AnalyzedGuestEntry} AnalyzedGuestEntry */
 
 /**
  * Uses string.localeCompare() to compare the given strings
@@ -139,16 +140,20 @@ export const compareEntries = (baseEntry, otherEntry) => {
  * @param {object} fullData The container containing data of all realms
  * @param {string} key The key of the realm to compare all entries of
  * @param {string} otherKey The key of the other realm with which to compare
- * @returns {array} The processed data for given realm
+ * @returns The processed data for given realm
  */
 const compareOne = (fullData, key, otherKey) => {
+    /** @type {GuestEntry[]} */
     const baseData = fullData[key];
+    /** @type {GuestEntry[]} */
     const otherData = fullData[otherKey];
+    /** @type {AnalyzedGuestEntry[]} */
     let newData = [];
 
     if (baseData && otherData && baseData.length > 0 && otherData.length > 0) {
         for (let baseEntry of baseData) {
             let found = false;
+            /** @type {AnalyzedGuestEntry} */
             let newEntry = { ...baseEntry };
             for (let otherEntry of otherData) {
                 if (compareEntries(baseEntry, otherEntry)) {
@@ -174,15 +179,19 @@ const compareOne = (fullData, key, otherKey) => {
  * @param {object} fullData The container containing data of all realms
  * @param {string} key The key of the realm to compare all entries of
  * @param {string} otherKey The key of the other realm with which to compare
- * @returns {array} The processed data for given realm
+ * @returns The processed data for given realm
  */
 const searchSimilarForOne = (fullData, key, otherKey) => {
+    /** @type {GuestEntry[]} */
     const baseData = fullData[key];
+    /** @type {GuestEntry[]} */
     const otherData = fullData[otherKey];
+    /** @type {AnalyzedGuestEntry[]} */
     let newData = [];
 
     if (baseData && otherData && baseData.length > 0 && otherData.length > 0) {
         for (let baseEntry of baseData) {
+            /** @type {AnalyzedGuestEntry} */
             let newEntry = baseEntry;
             if (baseEntry.notInOther) {
                 newEntry = { ...baseEntry };
