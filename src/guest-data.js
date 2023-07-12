@@ -27,6 +27,7 @@
  * @property {boolean} notInOther true if the entry is not present in the other guest list. written in _compareOne_ function
  * @property {boolean} similarFound true if a similar entry is present in the other guest list. written in _searchSimilarForOne_ function
  * @property {boolean} sameNameButDifferentRoomNoFound written in _searchSimilarForOne_ function
+ * @property {boolean} sameRoomNoAndFirstNameFound written in _searchSimilarForOne_ function
  */
 
 /**

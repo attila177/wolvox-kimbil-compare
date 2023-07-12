@@ -15,9 +15,11 @@ class List extends Component {
         let trs = [];
         let text = <span />;
         if (this.props.dataForKey) {
-            text = <span> {`Listenin ${this.props.dataForKey.length} kayıdı var!`}</span>;
+            /** @type {import('./guest-data').AnalyzedGuestEntry[]} */
+            const entries = this.props.dataForKey;
+            text = <span>{`Listenin ${entries.length} kayıdı var!`}</span>;
             let key = 0;
-            for (let entry of this.props.dataForKey) {
+            for (let entry of entries) {
                 key++;
                 let st = {};
                 if (entry.notInOther) {
@@ -34,13 +36,16 @@ class List extends Component {
                     }
                 }
                 if(this.props.showAll || entry.notInOther) {
-                    trs.push(<tr key={key} style={st}><td>{entry.odaNo}</td><td>{entry.adi}</td><td>{entry.soyadi}</td></tr>);
+                    trs.push(<tr key={key} style={st}><td>{entry.odaNo}</td><td>{entry.adi}</td><td>{entry.soyadi}</td><td>{entry.identityNo}</td><td>{entry.giris}</td></tr>);
                 }
             }
         }
-        return <div className="holder" id={`${DATA_HOLDER_DIV_PREFIX}${this.props.key}`}>
+        return <div className="holder" id={`${DATA_HOLDER_DIV_PREFIX}${this.props.sourceKey}`}>
             {text}
-            <table><tbody>{trs}</tbody></table>
+            <table>
+                <thead><tr><th>Oda No</th><th>Ad&#305;</th><th>Soyad&#305;</th><th>TC / Pasaport No</th><th>Giri&#351; tarihi</th></tr></thead>
+                <tbody>{trs}</tbody>
+            </table>
         </div>;
     }
 }

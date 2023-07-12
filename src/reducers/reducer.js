@@ -57,12 +57,12 @@ export const rootReducer = (state = initialState, action) => {
             applyToGlobalState(action.key, action.payload);
         }
     } else {
-        logger.log("A non-changer event", action);
+        logger.debug("A non-changer event", action);
     }
     if (!touched) {
-        logger.log("No change in state");
+        logger.debug("No change in state");
         return state;
     }
-    logger.log("Reduced state to ", newState, "after action", action);
+    logger.debug("Reduced state to ", newState, "after action", action);
     return newState;
 };

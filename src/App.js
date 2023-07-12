@@ -4,7 +4,7 @@ import './App.css';
 import List from './List';
 import { connect } from 'react-redux';
 import { compareAllCsvData } from './compare';
-import { KEY_CSV_KIMBIL, KEY_CSV_WOLVOX } from './common';
+import { DATA_SOURCE_TYPE_LABEL, KEY_CSV_KIMBIL, KEY_CSV_WOLVOX, logger } from './common';
 import { DataConverter } from './convert';
 
 const VALIDATION_ERROR_HOLDER = "validation-error-holder";
@@ -16,7 +16,7 @@ const VALIDATION_ERROR_HOLDER = "validation-error-holder";
  */
 const printValidationError = (key, msg) => {
   const oldMsg = document.getElementById(VALIDATION_ERROR_HOLDER + key).innerHTML;
-  console.warn("validation error", key, msg);
+  logger.warn("validation error", key, msg);
   document.getElementById(VALIDATION_ERROR_HOLDER + key).innerHTML = oldMsg + " <br> " + msg;
 };
 
@@ -47,22 +47,22 @@ class App extends Component {
     const that = this;
     const read = (inPar1) => {
       const file = inPar1.target.files[0];
-      console.log("File metadata", file);
+      logger.debug("File metadata", file);
       const reader = new FileReader();
       reader.readAsText(file, 'ISO-8859-1');
       reader.onload = function (evt) {
         const result = evt.target.result?.toString();
-        console.log("Read file:", file);
+        logger.log("Read file:", file);
         document.getElementById(`${dataSourceTypeKey}-present`).textContent = "Loaded.";
         that.converters[dataSourceTypeKey] = new DataConverter(printValidationError, resetValidationError, dataSourceTypeKey, result);
         compareAllCsvData(that);
       }
       reader.onerror = function (evt) {
-        console.log("error", evt);
+        logger.error("error", evt);
       }
     };
     const dataIsPresent = <div id={`${dataSourceTypeKey}-present`} ></div >;
-    return <div>{dataSourceTypeKey}: <br /><input type="file" id={dataSourceTypeKey} onChange={read} /> {dataIsPresent} <br />
+    return <div>{DATA_SOURCE_TYPE_LABEL[dataSourceTypeKey]}: <br /><input type="file" id={dataSourceTypeKey} onChange={read} /> {dataIsPresent} <br />
     </div>;
   }
 
@@ -88,7 +88,7 @@ class App extends Component {
         <input id="showAll" type="checkbox" value= {`${this.state.showAll}`} onChange={onCheckboxChanged} />
         <label htmlFor="showAll">B&uuml;t&uuml;n m&uuml;&#351;terileri g&ouml;ster</label>
         <br />
-        <table className="full">
+        <table className="fullWidth">
           <tbody>
             <tr>
               <td>{this.fileReader(KEY_CSV_WOLVOX)}</td>

@@ -27,14 +27,24 @@
   to { transform: rotate(360deg); }
 }
 
-.full {
+.fullWidth {
+  margin-top: 10px;
   width:100%;
 }
 
 .holder {
   vertical-align: top;
+  margin: 10px 2%;
 }
 
 .red {
   background-color: red;
+}
+
+th {
+  border: 1px solid black;
+}
+
+table {
+  width: 100%;
 }

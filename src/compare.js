@@ -122,15 +122,19 @@ export const compareEntries = (baseEntry, otherEntry) => {
     const soyadiMatch = resembleDespiteNameAnonymization(baseEntry.soyadi_simple, otherEntry.soyadi_simple);
     const identityNoMatch = resembleDespiteIdentityNoAnonymization(baseEntry.identityNo, otherEntry.identityNo);
     if (odaMatch && adiMatch && soyadiMatch) {
-        logger.log("Found match:", baseEntry, otherEntry);
+        logger.debug("Found match:", baseEntry, otherEntry);
         if (!identityNoMatch) {
             logger.warn('Match with different identityNo!', baseEntry, otherEntry);
         }
         return true;
     }
-    if ([odaMatch, adiMatch, soyadiMatch, identityNoMatch].filter(Boolean).length > 1) {
+    /*
+     * doesnt really make sense. it will find people with the same last name in the same room ie family members
+     * anyway, the search _searchSimilarForOne_ works better than this.
+    if ([adiMatch, soyadiMatch, identityNoMatch].filter(Boolean).length > 1) {
         logger.log("Partial match:", baseEntry, otherEntry);
     }
+    */
     return false;
 };
 
@@ -219,7 +223,7 @@ const searchSimilarForOne = (fullData, key, otherKey) => {
                         }
                     }
                 } else {
-                    logger.log("Could not find a similar entry with levenshtein!");
+                    logger.debug("Could not find a similar entry with levenshtein!");
                     newEntry.similarFound = false;
                     for (let otherEntry of otherData) {
                         if (otherEntry.notInOther && numbersResemble(baseEntry.odaNo, otherEntry.odaNo) && resemble(baseEntry.adi_simple, otherEntry.adi_simple)) {

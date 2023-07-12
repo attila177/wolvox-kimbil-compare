@@ -62,7 +62,8 @@ const toData = ({odaNo, adi, adi_simple, soyadi, soyadi_simple, giris, cikis, ge
         odaNo,
         adi,
         soyadi,
-        giris,
+        // wolvox has format 'D.MM.YYYY' while kimbil has format 'D.MM.YYYY H:mm:SS'
+        giris: giris ? giris.split(' ')[0] : giris,
         cikis,
         adi_simple,
         soyadi_simple,
@@ -278,7 +279,7 @@ export class DataConverter {
             kimlikNo: commonStringConvert(line[this.indices.kimlikNo]),
             uyruk: commonStringConvert(line[this.indices.uyruk]),
         });
-        logger.log("kimbil to data", result);
+        logger.debug("kimbil to data", result);
         return result;
     }
 
@@ -305,7 +306,7 @@ export class DataConverter {
             kimlikNo: commonStringConvert(line[this.indices.kimlikNo]),
             uyruk: commonStringConvert(line[this.indices.uyruk])
             });
-        logger.log("wolvox to data", result);
+        logger.debug("wolvox to data", result);
         return result;
     };
 
@@ -355,23 +356,23 @@ export class DataConverter {
         if (this.dataMatrix) {
             const fullData = [];
             this.validateFn(this.dataMatrix, this.printValidationErrorFunction, this.resetValidationErrorFunction);
-            logger.log(this.dataSourceTypeKey, "raw", this.dataMatrix);
+            logger.debug(this.dataSourceTypeKey, "raw", this.dataMatrix);
             let isFirst = true;
             for (let entry of this.dataMatrix) {
                 if (isFirst) {
                     isFirst = false;
-                    logger.log("Skipping first", entry);
+                    logger.debug("Skipping first", entry);
                     continue;
                 }
                 if (entry.length < 2) {
-                    logger.log("Skipping empty", entry);
+                    logger.debug("Skipping empty", entry);
                     continue;
                 }
                 const compiled = this.toDataFunction(entry);
                 if(compiled.isValid) {
                     fullData.push(compiled);
                 } else {
-                    logger.warn(`Not adding invalid line to data set: ${entry.join(', ')}`);
+                    logger.warn(`[${this.dataSourceTypeKey}][room ${compiled.odaNo}] Not adding invalid line to data set: ${entry.join('; ')}`);
                 }
             }
             let maxOdaNoLength = 0;
@@ -385,7 +386,7 @@ export class DataConverter {
                     data.odaNo = `0${data.odaNo}`;
                 }
             });
-            logger.log(this.dataSourceTypeKey, "full", fullData);
+            logger.debug(this.dataSourceTypeKey, "full", fullData);
             fullData.sort((a, b) => {
                 // soyadi, adi
                 if (a.soyadi_simple === b.soyadi_simple && a.odaNo === b.odaNo) {
@@ -396,7 +397,7 @@ export class DataConverter {
                 }
                 return stringCompare(a.odaNo, b.odaNo);
             });
-            logger.log(this.dataSourceTypeKey, "full sorted", fullData);
+            logger.debug(this.dataSourceTypeKey, "full sorted", fullData);
             that.props.dispatch(eventMaker(this.dataSourceTypeKey, fullData));
             return fullData;
         }

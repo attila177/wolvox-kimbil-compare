@@ -54,7 +54,7 @@ const cellSeparatorScore = (lines, cellSeparator) => {
     });
     const prevalenceScore = keyWithHighestValue;
     const score = 10 * consistencyScore + prevalenceScore;
-    logger.log("Cell separator", cellSeparator, "scored", score, "with", amounts, amountList);
+    logger.debug("Cell separator", cellSeparator, "scored", score, "with", amounts, amountList);
     return score;
 }
 
