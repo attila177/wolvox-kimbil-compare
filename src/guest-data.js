@@ -15,6 +15,7 @@
 /**
  * @typedef {Object} GuestEntryExtraData
  * @property {boolean} isValid
+ * @property {string} paddedOdaNo The room number, but with 0 added to the start
  * @property {string} identityNo Abstract unique ID derived either from _gecerliBelge_ or _kimlikNo_
  */
 

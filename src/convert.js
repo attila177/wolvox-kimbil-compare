@@ -148,7 +148,7 @@ const commonStringSimplify = (s) => {
     s = replaceAll(s, "Ä", 'A');
     s = replaceAll(s, "Ş", 'S');
     s = replaceAll(s, "�", 'U');
-    return s;
+    return s.toUpperCase();
 };
 
 /**
@@ -354,6 +354,7 @@ export class DataConverter {
      */
     convertOneCsvData(that) {
         if (this.dataMatrix) {
+            /** @type {GuestEntry[]} */
             const fullData = [];
             this.validateFn(this.dataMatrix, this.printValidationErrorFunction, this.resetValidationErrorFunction);
             logger.debug(this.dataSourceTypeKey, "raw", this.dataMatrix);
@@ -377,25 +378,26 @@ export class DataConverter {
             }
             let maxOdaNoLength = 0;
             fullData.forEach(data => {
+                data.paddedOdaNo = data.odaNo;
                 if(isNumberlike(data.odaNo) && maxOdaNoLength < data.odaNo.length) {
                     maxOdaNoLength = data.odaNo.length;
                 }
             });
             fullData.forEach(data => {
-                while(maxOdaNoLength > data.odaNo.length) {
-                    data.odaNo = `0${data.odaNo}`;
+                while(maxOdaNoLength > data.paddedOdaNo.length) {
+                    data.paddedOdaNo = `0${data.paddedOdaNo}`;
                 }
             });
             logger.debug(this.dataSourceTypeKey, "full", fullData);
             fullData.sort((a, b) => {
                 // soyadi, adi
-                if (a.soyadi_simple === b.soyadi_simple && a.odaNo === b.odaNo) {
+                if (a.soyadi_simple === b.soyadi_simple && a.paddedOdaNo === b.paddedOdaNo) {
                     return stringCompare(a.adi_simple, b.adi_simple);
                 }
-                if (a.odaNo === b.odaNo) {
+                if (a.paddedOdaNo === b.paddedOdaNo) {
                     return stringCompare(a.soyadi_simple, b.soyadi_simple);
                 }
-                return stringCompare(a.odaNo, b.odaNo);
+                return stringCompare(a.paddedOdaNo, b.paddedOdaNo);
             });
             logger.debug(this.dataSourceTypeKey, "full sorted", fullData);
             that.props.dispatch(eventMaker(this.dataSourceTypeKey, fullData));
