@@ -54,7 +54,7 @@ class App extends Component {
         const result = evt.target.result?.toString();
         console.log("Read file:", file);
         document.getElementById(`${dataSourceTypeKey}-present`).textContent = "Loaded.";
-        that.converters[dataSourceTypeKey] = new DataConverter(printValidationError, resetValidationError, dataSourceTypeKey, result, console);
+        that.converters[dataSourceTypeKey] = new DataConverter(printValidationError, resetValidationError, dataSourceTypeKey, result);
         compareAllCsvData(that);
       }
       reader.onerror = function (evt) {

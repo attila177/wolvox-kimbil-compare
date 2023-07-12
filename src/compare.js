@@ -3,6 +3,8 @@ import { KEY_CSV_KIMBIL, KEY_CSV_WOLVOX } from './common';
 import { fullEventMaker } from './reducers/reducer';
 const logger = consoleMock;
 
+/** @typedef {import('./convert').GuestEntry} GuestEntry */
+
 /**
  * Uses string.localeCompare() to compare the given strings
  * @param {string} a The first string of the comparison
@@ -109,35 +111,21 @@ const numbersResemble = (s1, s2) => {
 };
 
 /**
- * @param {import('./convert').GuestEntry} entry 
- */
-const getIdentityNo = (entry) => {
-    if (!entry.uyruk) {
-      const guess = entry.kimlikNo || entry.gecerliBelge || ''; 
-      if (entry.kimlikNo && entry.gecerliBelge) {
-        logger.warn(`Guessing identity no ${guess} for`, entry);
-      }
-      return guess;
-    } else if (entry.uyruk === 'TÜRKİYE' || entry.uyruk === 'TC') {
-        return entry.kimlikNo || '';
-    } else {
-        return entry.gecerliBelge || '';
-    }
-}
-
-/**
  * Compares two entries.
- * @param {object} baseEntry The first entry of the comparison 
- * @param {object} otherEntry The second entry of the comparison
+ * @param {GuestEntry} baseEntry The first entry of the comparison 
+ * @param {GuestEntry} otherEntry The second entry of the comparison
  * @returns {boolean} true iff numbersResemble(odaNo) && resemble(adi) && resemble(soyadi)
  */
 export const compareEntries = (baseEntry, otherEntry) => {
     const odaMatch = numbersResemble(baseEntry.odaNo, otherEntry.odaNo);
     const adiMatch = resembleDespiteNameAnonymization(baseEntry.adi_simple, otherEntry.adi_simple);
     const soyadiMatch = resembleDespiteNameAnonymization(baseEntry.soyadi_simple, otherEntry.soyadi_simple);
-    const identityNoMatch = resembleDespiteIdentityNoAnonymization(getIdentityNo(baseEntry), getIdentityNo(otherEntry));
-    if (odaMatch && adiMatch && soyadiMatch && identityNoMatch) {
+    const identityNoMatch = resembleDespiteIdentityNoAnonymization(baseEntry.identityNo, otherEntry.identityNo);
+    if (odaMatch && adiMatch && soyadiMatch) {
         logger.log("Found match:", baseEntry, otherEntry);
+        if (!identityNoMatch) {
+            logger.warn('Match with different identityNo!', baseEntry, otherEntry);
+        }
         return true;
     }
     if ([odaMatch, adiMatch, soyadiMatch, identityNoMatch].filter(Boolean).length > 1) {

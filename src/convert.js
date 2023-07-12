@@ -2,7 +2,9 @@ import { KEY_CSV_KIMBIL, KEY_CSV_WOLVOX, isNumberlike } from './common';
 import { stringCompare } from './compare';
 import { eventMaker } from './reducers/reducer';
 import { extractCsv } from './csv';
+import { consoleMock } from './commontest';
 import FIELDS from './guest-data';
+const logger = consoleMock;
 
 /** @typedef {import('./common').DataSourceTypeKey} DataSourceTypeKey */
 
@@ -39,15 +41,37 @@ const ROW_HEADERS = {
  * @property {string} soyadi_simple The last name (without special characters)
  * @property {string} giris A string representation of the date of arrival
  * @property {string} cikis A string representation of the date of departure
- * @property {string} gecerliBelge
- * @property {string} kimlikNo
- * @property {string} uyruk
+ * @property {string} gecerliBelge Passport No of non-turkish citizens
+ * @property {string} kimlikNo TC No of turkish citizens
+ * @property {string} uyruk Nationality
  */
 
 /**
- * @typedef {GuestEntryInput & {isValid: boolean}} GuestEntry
+ * @typedef {Object} GuestEntryExtraData
+ * @property {boolean} isValid
+ * @property {string} identityNo Abstract unique ID derived either from _gecerliBelge_ or _kimlikNo_
  */
 
+/**
+ * @typedef {GuestEntryInput & GuestEntryExtraData} GuestEntry
+ */
+
+/**
+ * @param {import('./convert').GuestEntry} entry 
+ */
+const getIdentityNo = (entry) => {
+    if (!entry.uyruk) {
+      const guess = entry.kimlikNo || entry.gecerliBelge || ''; 
+      if (entry.kimlikNo && entry.gecerliBelge) {
+        logger.warn(`Guessing identity no ${guess} for`, entry);
+      }
+      return guess;
+    } else if (entry.uyruk === 'TÜRKİYE' || entry.uyruk === 'TC') {
+        return entry.kimlikNo || '';
+    } else {
+        return entry.gecerliBelge || '';
+    }
+}
 
 /**
  * Creates an entry object with given data.
@@ -56,7 +80,8 @@ const ROW_HEADERS = {
  */
 const toData = ({odaNo, adi, adi_simple, soyadi, soyadi_simple, giris, cikis, gecerliBelge, kimlikNo, uyruk}) => {
     const isValid = !!(adi && soyadi);
-    return {
+    /** @type {GuestEntry} */
+    const stub = {
         odaNo,
         adi,
         soyadi,
@@ -69,6 +94,8 @@ const toData = ({odaNo, adi, adi_simple, soyadi, soyadi_simple, giris, cikis, ge
         kimlikNo,
         uyruk
     };
+    stub.identityNo = getIdentityNo(stub);
+    return stub;
 };
 
 
@@ -209,7 +236,7 @@ export class DataConverter {
      * @param {DataSourceTypeKey} dataSourceTypeKey
      * @param {string} rawCsvContent
      */
-    constructor(printValidationErrorFunction, resetValidationErrorFunction, dataSourceTypeKey, rawCsvContent, logger) {
+    constructor(printValidationErrorFunction, resetValidationErrorFunction, dataSourceTypeKey, rawCsvContent) {
         this.printValidationErrorFunction = printValidationErrorFunction;
         this.resetValidationErrorFunction = resetValidationErrorFunction;
         this.dataSourceTypeKey = dataSourceTypeKey;
@@ -223,7 +250,6 @@ export class DataConverter {
             this.dataMatrix = extractCsv(this.rawCsvContent);
             this.initializeIndices();
         }
-        this.logger = logger;
     }
 
     /**
@@ -232,7 +258,7 @@ export class DataConverter {
      */
     initializeIndices () {
         if (!this.dataMatrix[0]) {
-            this.logger.error('Error')
+            logger.error('Error')
             return;
         }
         const headerCells = this.dataMatrix[0]
@@ -243,7 +269,7 @@ export class DataConverter {
             if (match) {
                 this.indices[match] = index;
             } else {
-                // this.logger.log("could not find matching rowHeader for", cellContent, 'in', this.dataSourceTypeKey);
+                // logger.log("could not find matching rowHeader for", cellContent, 'in', this.dataSourceTypeKey);
             }
         });
         const requiredFieldsNames = Object.entries(FIELDS).filter(([_name, props]) => props.required).map(([name, _props]) => name);
@@ -275,7 +301,7 @@ export class DataConverter {
             kimlikNo: commonStringConvert(line[this.indices.kimlikNo]),
             uyruk: commonStringConvert(line[this.indices.uyruk]),
         });
-        this.logger.log("kimbil to data", result);
+        logger.log("kimbil to data", result);
         return result;
     }
 
@@ -302,7 +328,7 @@ export class DataConverter {
             kimlikNo: commonStringConvert(line[this.indices.kimlikNo]),
             uyruk: commonStringConvert(line[this.indices.uyruk])
             });
-        this.logger.log("wolvox to data", result);
+        logger.log("wolvox to data", result);
         return result;
     };
 
@@ -329,7 +355,7 @@ export class DataConverter {
      * @param {function} resetValidationError The function for resetting validation error display
      */
     wolvoxCsvRawCsvValidationFunction (lines, printValidationError, resetValidationError) {
-        this.logger.log("Validating wolvox raw csv", lines);
+        logger.log("Validating wolvox raw csv", lines);
         let err = false;
         resetValidationError(KEY_CSV_WOLVOX);
         err = err || handleWolvoxRowError(this.indices.odaNo, "Oda No", printValidationError);
@@ -352,23 +378,23 @@ export class DataConverter {
         if (this.dataMatrix) {
             const fullData = [];
             this.validateFn(this.dataMatrix, this.printValidationErrorFunction, this.resetValidationErrorFunction);
-            this.logger.log(this.dataSourceTypeKey, "raw", this.dataMatrix);
+            logger.log(this.dataSourceTypeKey, "raw", this.dataMatrix);
             let isFirst = true;
             for (let entry of this.dataMatrix) {
                 if (isFirst) {
                     isFirst = false;
-                    this.logger.log("Skipping first", entry);
+                    logger.log("Skipping first", entry);
                     continue;
                 }
                 if (entry.length < 2) {
-                    this.logger.log("Skipping empty", entry);
+                    logger.log("Skipping empty", entry);
                     continue;
                 }
                 const compiled = this.toDataFunction(entry);
                 if(compiled.isValid) {
                     fullData.push(compiled);
                 } else {
-                    this.logger.warn(`Not adding invalid line to data set: ${entry.join(', ')}`);
+                    logger.warn(`Not adding invalid line to data set: ${entry.join(', ')}`);
                 }
             }
             let maxOdaNoLength = 0;
@@ -382,7 +408,7 @@ export class DataConverter {
                     data.odaNo = `0${data.odaNo}`;
                 }
             });
-            this.logger.log(this.dataSourceTypeKey, "full", fullData);
+            logger.log(this.dataSourceTypeKey, "full", fullData);
             fullData.sort((a, b) => {
                 // soyadi, adi
                 if (a.soyadi_simple === b.soyadi_simple && a.odaNo === b.odaNo) {
@@ -393,7 +419,7 @@ export class DataConverter {
                 }
                 return stringCompare(a.odaNo, b.odaNo);
             });
-            this.logger.log(this.dataSourceTypeKey, "full sorted", fullData);
+            logger.log(this.dataSourceTypeKey, "full sorted", fullData);
             that.props.dispatch(eventMaker(this.dataSourceTypeKey, fullData));
             return fullData;
         }
