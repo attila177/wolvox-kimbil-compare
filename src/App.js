@@ -70,22 +70,25 @@ class App extends Component {
     const onCheckboxChanged = (e) => {
       this.setState({...this.state, printView: e.target.checked});
     };
+    const sorunRenkleri = this.state.printView ? '' : <span>
+      Sorun renkleri:<br />
+        <span style={{ backgroundColor: "red" }}>Bilinmeyen sorun</span> &nbsp;
+        <span style={{ backgroundColor: "yellow" }}>&#x0130;sim yanl&#x0131;&#x015f; yaz&#x0131;lm&#x0131;&#x015f;</span> &nbsp;
+        <span style={{ backgroundColor: "fuchsia" }}>Oda numaras&#x0131; ve isim ayn&#x0131;, soyisim farkl&#x0131;</span> &nbsp;
+        <span style={{ backgroundColor: "lightblue" }}>&#x0130;sim ve soyisim ayn&#x0131;, oda numaras&#x0131; farkl&#x0131;</span>
+        <br />
+    </span>
     return (
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
           <h1 className="App-title">Wolvox Kimbil Compare</h1>
         </header>
-        Sorun renkleri:<br />
-        <span style={{ backgroundColor: "red" }}>Bilinmeyen sorun</span> &nbsp;
-        <span style={{ backgroundColor: "yellow" }}>&#x0130;sim yanl&#x0131;&#x015f; yaz&#x0131;lm&#x0131;&#x015f;</span> &nbsp;
-        <span style={{ backgroundColor: "fuchsia" }}>Oda numaras&#x0131; ve isim ayn&#x0131;, soyisim farkl&#x0131;</span> &nbsp;
-        <span style={{ backgroundColor: "lightblue" }}>&#x0130;sim ve soyisim ayn&#x0131;, oda numaras&#x0131; farkl&#x0131;</span>
-        <br />
+        {sorunRenkleri}
         <div className="red" id={`${VALIDATION_ERROR_HOLDER}${KEY_CSV_WOLVOX}`}></div>
         <div className="red" id={`${VALIDATION_ERROR_HOLDER}${KEY_CSV_KIMBIL}`}></div>
         <br />
-        <input id="printView" type="checkbox" value= {`${this.state.printView}`} onChange={onCheckboxChanged} checked />
+        <input id="printView" type="checkbox" value= {`${this.state.printView}`} defaultChecked={true} onChange={onCheckboxChanged} />
         <label htmlFor="printView">&Ccedil;&#305;kt&#305; modu (sadece hatal&#305; m&uuml;&#351;terileri g&ouml;ster, beyaz arka plan)</label>
         <br />
         <table className="fullWidth">
