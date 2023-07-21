@@ -47,44 +47,44 @@ class List extends Component {
     }
     styleNotInOther(st) {
         if (this.props.printView) {
-            return {... st, color: 'red'}
+            return {...st, color: 'red'}
         } else {
-            return {... st, backgroundColor: 'red'}
+            return {...st, backgroundColor: 'red'}
         }
     }
     styleEmptyCaravan(st) {
         if (this.props.printView) {
-            return {... st, 'font-style': 'italic'}
+            return {...st, 'font-style': 'italic'}
         } else {
-            return {... st, backgroundColor: 'lightgreen'}
+            return {...st, backgroundColor: 'lightgreen'}
         }
     }
     styleSimilarFound(st) {
         if (this.props.printView) {
-            return {... st, color: 'orange'}
+            return {...st, color: 'orange'}
         } else {
-            return {... st, backgroundColor: 'yellow'}
+            return {...st, backgroundColor: 'yellow'}
         }
     }
     styleSameRoomNoAndFirstNameFound(st) {
         if (this.props.printView) {
-            return {... st, color: 'fuchsia'}
+            return {...st, color: 'fuchsia'}
         } else {
-            return {... st, backgroundColor: 'fuchsia'}
+            return {...st, backgroundColor: 'fuchsia'}
         }
     }
     styleSameNameButDifferentRoomNoFound(st) {
         if (this.props.printView) {
-            return {... st, 'font-weight': 'bold'}
+            return {...st, 'font-weight': 'bold'}
         } else {
-            return {... st, backgroundColor: 'lightblue'}
+            return {...st, backgroundColor: 'lightblue'}
         }
     }
     styleWolvoxMissingTcNo(st) {
         if (this.props.printView) {
-            return {... st, color: 'darkblue'}
+            return {...st, color: 'darkblue'}
         } else {
-            return {... st, border: '1px solid turquoise'}
+            return {...st, border: '1px solid turquoise'}
         }
     }
     render() {

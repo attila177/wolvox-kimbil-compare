@@ -85,7 +85,7 @@ class App extends Component {
         <div className="red" id={`${VALIDATION_ERROR_HOLDER}${KEY_CSV_WOLVOX}`}></div>
         <div className="red" id={`${VALIDATION_ERROR_HOLDER}${KEY_CSV_KIMBIL}`}></div>
         <br />
-        <input id="printView" type="checkbox" value= {`${this.state.printView}`} onChange={onCheckboxChanged} />
+        <input id="printView" type="checkbox" value= {`${this.state.printView}`} onChange={onCheckboxChanged} checked />
         <label htmlFor="printView">&Ccedil;&#305;kt&#305; modu (sadece hatal&#305; m&uuml;&#351;terileri g&ouml;ster, beyaz arka plan)</label>
         <br />
         <table className="fullWidth">
