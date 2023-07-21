@@ -1,4 +1,4 @@
-import { KEY_CSV_KIMBIL, KEY_CSV_WOLVOX, isNumberlike } from './common';
+import { KEY_CSV_KIMBIL, KEY_CSV_WOLVOX, isNumberlike, isTurkishCitizen } from './common';
 import { stringCompare } from './compare';
 import { eventMaker } from './reducers/reducer';
 import { extractCsv } from './csv';
@@ -6,8 +6,8 @@ import { logger } from './common';
 import FIELDS from './guest-data';
 
 /** @typedef {import('./common').DataSourceTypeKey} DataSourceTypeKey */
-/** @typedef {import('./guest-data').GuestEntry} GuestEntry */
-/** @typedef {import('./guest-data').GuestEntryInput} GuestEntryInput */
+/** @typedef {import('./common').GuestEntry} GuestEntry */
+/** @typedef {import('./common').GuestEntryInput} GuestEntryInput */
 
 /** @type {{[typeKey: string]: {[keyKey: string]: string[]}}} */
 const ROW_HEADERS = {
@@ -19,7 +19,8 @@ const ROW_HEADERS = {
         cikis: [],
         gecerliBelge: ['GecerliBelge'],
         kimlikNo: ['KimlikNo'],
-        uyruk: ['UAdi']
+        uyruk: ['UAdi'],
+        not: []
     },
     [KEY_CSV_WOLVOX]: {
         odaNo: ['Oda No', 'OdaNo'],
@@ -29,7 +30,8 @@ const ROW_HEADERS = {
         cikis: ['Çýkýþ Tarihi', 'Çıkış Tarihi', '��k�� Tarihi', 'ï¿½ï¿½kï¿½ï¿½Tarihi'],
         gecerliBelge: ['H�viyet No', 'Hüviyet No', 'Hï¿½viyetNo'],
         kimlikNo: ['TC Kimlik No', 'TCKimlikNo'],
-        uyruk: ['Uyruğu', 'Uyru�u', 'Uyruðu']
+        uyruk: ['Uyruğu', 'Uyru�u', 'Uyruðu'],
+        not: ['Rez. Not 1']
     },
 }
 
@@ -70,8 +72,10 @@ const toData = ({odaNo, adi, adi_simple, soyadi, soyadi_simple, giris, cikis, ge
         isValid,
         gecerliBelge,
         kimlikNo,
-        uyruk
+        uyruk,
+        isTurkishCitizen,
     };
+    stub.isTurkishCitizen = isTurkishCitizen(stub);
     stub.identityNo = getIdentityNo(stub);
     return stub;
 };
@@ -278,6 +282,7 @@ export class DataConverter {
             gecerliBelge: commonStringConvert(line[this.indices.gecerliBelge]),
             kimlikNo: commonStringConvert(line[this.indices.kimlikNo]),
             uyruk: commonStringConvert(line[this.indices.uyruk]),
+            not: undefined,
         });
         logger.debug("kimbil to data", result);
         return result;
@@ -304,7 +309,8 @@ export class DataConverter {
             cikis: commonStringConvert(line[this.indices.cikis]),
             gecerliBelge: commonStringConvert(line[this.indices.gecerliBelge]),
             kimlikNo: commonStringConvert(line[this.indices.kimlikNo]),
-            uyruk: commonStringConvert(line[this.indices.uyruk])
+            uyruk: commonStringConvert(line[this.indices.uyruk]),
+            not: commonStringConvert(line[this.indices.not]),
             });
         logger.debug("wolvox to data", result);
         return result;

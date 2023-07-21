@@ -15,7 +15,7 @@ class List extends Component {
         let trs = [];
         let text = <span />;
         if (this.props.dataForKey) {
-            /** @type {import('./guest-data').AnalyzedGuestEntry[]} */
+            /** @type {import('./common').AnalyzedGuestEntry[]} */
             const entries = this.props.dataForKey;
             text = <span>{`Listenin ${entries.length} kayıdı var!`}</span>;
             let key = 0;
@@ -33,6 +33,9 @@ class List extends Component {
                         if (entry.sameNameButDifferentRoomNoFound) {
                             st = { "backgroundColor": "lightblue" };
                         }
+                    }
+                    if (entry.wolvoxMissingTcNo) {
+                        st = {...st, border: '1px solid turquoise'};
                     }
                 }
                 if(this.props.showAll || entry.notInOther) {

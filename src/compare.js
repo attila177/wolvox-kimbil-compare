@@ -2,8 +2,8 @@ import { logger } from './common';
 import { KEY_CSV_KIMBIL, KEY_CSV_WOLVOX } from './common';
 import { fullEventMaker } from './reducers/reducer';
 
-/** @typedef {import('./guest-data').GuestEntry} GuestEntry */
-/** @typedef {import('./guest-data').AnalyzedGuestEntry} AnalyzedGuestEntry */
+/** @typedef {import('./common').GuestEntry} GuestEntry */
+/** @typedef {import('./common').AnalyzedGuestEntry} AnalyzedGuestEntry */
 
 /**
  * Uses string.localeCompare() to compare the given strings
@@ -87,6 +87,18 @@ const resembleDespiteIdentityNoAnonymization = (input1, input2) => {
 };
 
 /**
+ * Warning: Wolvox does not contain identity nos of non-turkish guests
+ * @param {GuestEntry} baseEntry
+ * @param {GuestEntry} guestEntry
+ */
+const identityMatch = (baseEntry, guestEntry) => {
+    if (!baseEntry.isTurkishCitizen || !guestEntry.isTurkishCitizen) {
+        return true;
+    }
+    return resembleDespiteIdentityNoAnonymization(baseEntry.identityNo, guestEntry.identityNo);
+};
+
+/**
  * Strips leading zeros from given string
  * @param {string} s The string from which to strip leading zeros 
  * @returns {string} A string without leading zeros
@@ -120,12 +132,9 @@ export const compareEntries = (baseEntry, otherEntry) => {
     const odaMatch = numbersResemble(baseEntry.odaNo, otherEntry.odaNo);
     const adiMatch = resembleDespiteNameAnonymization(baseEntry.adi_simple, otherEntry.adi_simple);
     const soyadiMatch = resembleDespiteNameAnonymization(baseEntry.soyadi_simple, otherEntry.soyadi_simple);
-    const identityNoMatch = resembleDespiteIdentityNoAnonymization(baseEntry.identityNo, otherEntry.identityNo);
-    if (odaMatch && adiMatch && soyadiMatch) {
+    const identityNoMatch = identityMatch(baseEntry, otherEntry);
+    if (odaMatch && adiMatch && soyadiMatch && identityNoMatch) {
         logger.debug("Found match:", baseEntry, otherEntry);
-        if (!identityNoMatch) {
-            logger.warn('Match with different identityNo!', baseEntry, otherEntry);
-        }
         return true;
     }
     /*
@@ -142,8 +151,8 @@ export const compareEntries = (baseEntry, otherEntry) => {
  * Carries out comparison for all entries of the data of one realm.
  * @param {object} that Not needed
  * @param {object} fullData The container containing data of all realms
- * @param {string} key The key of the realm to compare all entries of
- * @param {string} otherKey The key of the other realm with which to compare
+ * @param {import('./common').DataSourceTypeKey} key The key of the realm to compare all entries of
+ * @param {import('./common').DataSourceTypeKey} otherKey The key of the other realm with which to compare
  * @returns The processed data for given realm
  */
 const compareOne = (fullData, key, otherKey) => {
@@ -159,6 +168,9 @@ const compareOne = (fullData, key, otherKey) => {
             let found = false;
             /** @type {AnalyzedGuestEntry} */
             let newEntry = { ...baseEntry };
+            if (key === KEY_CSV_WOLVOX && !baseEntry.kimlikNo) {
+                newEntry.wolvoxMissingTcNo = true;
+            }
             for (let otherEntry of otherData) {
                 if (compareEntries(baseEntry, otherEntry)) {
                     found = true;
