@@ -33,7 +33,7 @@ class App extends Component {
   constructor(props) {
     super();
     this.state = {
-      showAll: false,
+      printView: true,
     };
     this.converters = {};
   }
@@ -68,7 +68,7 @@ class App extends Component {
 
   render() {
     const onCheckboxChanged = (e) => {
-      this.setState({...this.state, showAll: e.target.checked});
+      this.setState({...this.state, printView: e.target.checked});
     };
     return (
       <div className="App">
@@ -85,8 +85,8 @@ class App extends Component {
         <div className="red" id={`${VALIDATION_ERROR_HOLDER}${KEY_CSV_WOLVOX}`}></div>
         <div className="red" id={`${VALIDATION_ERROR_HOLDER}${KEY_CSV_KIMBIL}`}></div>
         <br />
-        <input id="showAll" type="checkbox" value= {`${this.state.showAll}`} onChange={onCheckboxChanged} />
-        <label htmlFor="showAll">B&uuml;t&uuml;n m&uuml;&#351;terileri g&ouml;ster</label>
+        <input id="printView" type="checkbox" value= {`${this.state.printView}`} onChange={onCheckboxChanged} />
+        <label htmlFor="printView">&Ccedil;&#305;kt&#305; modu (sadece hatal&#305; m&uuml;&#351;terileri g&ouml;ster, beyaz arka plan)</label>
         <br />
         <table className="fullWidth">
           <tbody>
@@ -95,8 +95,8 @@ class App extends Component {
               <td>{this.fileReader(KEY_CSV_KIMBIL)}</td>
             </tr>
             <tr>
-              <td><List sourceKey={KEY_CSV_WOLVOX} showAll={this.state.showAll} /></td>
-              <td><List sourceKey={KEY_CSV_KIMBIL} showAll={this.state.showAll} /></td>
+              <td><List sourceKey={KEY_CSV_WOLVOX} printView={this.state.printView} /></td>
+              <td><List sourceKey={KEY_CSV_KIMBIL} printView={this.state.printView} /></td>
             </tr>
           </tbody>
         </table>
