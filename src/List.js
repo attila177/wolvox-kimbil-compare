@@ -82,9 +82,9 @@ class List extends Component {
     }
     styleWolvoxMissingTcNo(st) {
         if (this.props.printView) {
-            return {...st, color: 'darkblue'}
+            return {...st, border: '3px dashed turquoise'}
         } else {
-            return {...st, border: '1px solid turquoise'}
+            return {...st, border: '3px dashed turquoise'}
         }
     }
     render() {

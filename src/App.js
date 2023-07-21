@@ -75,7 +75,8 @@ class App extends Component {
         <span style={{ backgroundColor: "red" }}>Bilinmeyen sorun</span> &nbsp;
         <span style={{ backgroundColor: "yellow" }}>&#x0130;sim yanl&#x0131;&#x015f; yaz&#x0131;lm&#x0131;&#x015f;</span> &nbsp;
         <span style={{ backgroundColor: "fuchsia" }}>Oda numaras&#x0131; ve isim ayn&#x0131;, soyisim farkl&#x0131;</span> &nbsp;
-        <span style={{ backgroundColor: "lightblue" }}>&#x0130;sim ve soyisim ayn&#x0131;, oda numaras&#x0131; farkl&#x0131;</span>
+        <span style={{ backgroundColor: "lightblue" }}>&#x0130;sim ve soyisim ayn&#x0131;, oda numaras&#x0131; farkl&#x0131;</span> &nbsp;
+        <span style={{ border: "3px dashed turquoise" }}>Wolvox'ta TC nosu eksik</span> &nbsp;
         <br />
     </span>
     return (
