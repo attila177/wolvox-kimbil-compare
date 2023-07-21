@@ -52,6 +52,16 @@ const getIdentityNo = (entry) => {
     }
 }
 
+/** @param {string} inStr */
+const shortenDate = (inStr) => {
+    if (!inStr) {
+        return inStr;
+    }
+    // wolvox has format 'D.MM.YYYY' while kimbil has format 'D.MM.YYYY H:mm:SS'
+    const withoutTime = inStr.split(' ')[0];
+    return withoutTime.split('.').filter((_s, i) => i <= 1).join('.') + '.';
+}
+
 /**
  * Creates an entry object with given data.
  * @param {GuestEntryInput} param0
@@ -64,8 +74,7 @@ const toData = ({odaNo, adi, adi_simple, soyadi, soyadi_simple, giris, cikis, ge
         odaNo,
         adi,
         soyadi,
-        // wolvox has format 'D.MM.YYYY' while kimbil has format 'D.MM.YYYY H:mm:SS'
-        giris: giris ? giris.split(' ')[0] : giris,
+        giris: shortenDate(giris),
         cikis,
         adi_simple,
         soyadi_simple,
@@ -73,7 +82,6 @@ const toData = ({odaNo, adi, adi_simple, soyadi, soyadi_simple, giris, cikis, ge
         gecerliBelge,
         kimlikNo,
         uyruk,
-        isTurkishCitizen,
     };
     stub.isTurkishCitizen = isTurkishCitizen(stub);
     stub.identityNo = getIdentityNo(stub);
