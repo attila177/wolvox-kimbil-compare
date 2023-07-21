@@ -24,6 +24,9 @@ class List extends Component {
                 let st = {};
                 if (entry.notInOther) {
                     st = { "backgroundColor": "red" };
+                    if (entry.isEmptyCaravan) {
+                        st = {backgroundColor: 'lightgreen'}
+                    }
                     if (entry.similarFound === true) {
                         st = { "backgroundColor": "yellow" };
                     } else {

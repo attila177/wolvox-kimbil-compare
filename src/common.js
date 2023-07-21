@@ -17,6 +17,7 @@
  * @typedef {Object} GuestEntryExtraData
  * @property {boolean} isValid
  * @property {boolean} isTurkishCitizen
+ * @property {boolean} isEmptyCaravan only true if wolvox entry && entry.not contains the words "bo" and "karavan"
  * @property {string} paddedOdaNo The room number, but with 0 added to the start
  * @property {string} identityNo Abstract unique ID derived either from _gecerliBelge_ or _kimlikNo_
  */
@@ -75,7 +76,12 @@ export const isNumberlike = (input) => {
     }
 };
 
-/** @param {GuestEntry} */
+/** @param {GuestEntry} entry */
 export const isTurkishCitizen = (entry) => {
     return entry.uyruk === 'TÜRKİYE' || entry.uyruk === 'TC';
+}
+
+/** @param {GuestEntry} entry */
+export const isEmptyCaravan = (entry) => {
+    return entry.not && entry.not.toLowerCase().contains('bo') && entry.not.toLowerCase().contains('karavan');
 }
