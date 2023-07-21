@@ -1,4 +1,4 @@
-import { KEY_CSV_KIMBIL, KEY_CSV_WOLVOX, isNumberlike, isTurkishCitizen } from './common';
+import { KEY_CSV_KIMBIL, KEY_CSV_WOLVOX, isEmptyCaravan, isNumberlike, isTurkishCitizen } from './common';
 import { stringCompare } from './compare';
 import { eventMaker } from './reducers/reducer';
 import { extractCsv } from './csv';
@@ -67,7 +67,7 @@ const shortenDate = (inStr) => {
  * @param {GuestEntryInput} param0
  * @returns {GuestEntry} The entry object
  */
-const toData = ({odaNo, adi, adi_simple, soyadi, soyadi_simple, giris, cikis, gecerliBelge, kimlikNo, uyruk}) => {
+const toData = ({odaNo, adi, adi_simple, soyadi, soyadi_simple, giris, cikis, gecerliBelge, kimlikNo, uyruk, not}) => {
     const isValid = !!(adi && soyadi);
     /** @type {GuestEntry} */
     const stub = {
@@ -82,7 +82,9 @@ const toData = ({odaNo, adi, adi_simple, soyadi, soyadi_simple, giris, cikis, ge
         gecerliBelge,
         kimlikNo,
         uyruk,
+        not,
     };
+    stub.isEmptyCaravan = isEmptyCaravan(stub);
     stub.isTurkishCitizen = isTurkishCitizen(stub);
     stub.identityNo = getIdentityNo(stub);
     return stub;
