@@ -54,7 +54,7 @@ class List extends Component {
     }
     styleEmptyCaravan(st) {
         if (this.props.printView) {
-            return {...st, 'font-style': 'italic'}
+            return {...st, fontStyle: 'italic'}
         } else {
             return {...st, backgroundColor: 'lightgreen'}
         }
