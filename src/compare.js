@@ -133,8 +133,12 @@ export const compareEntries = (baseEntry, otherEntry) => {
     const adiMatch = resembleDespiteNameAnonymization(baseEntry.adi_simple, otherEntry.adi_simple);
     const soyadiMatch = resembleDespiteNameAnonymization(baseEntry.soyadi_simple, otherEntry.soyadi_simple);
     const identityNoMatch = identityMatch(baseEntry, otherEntry);
-    if (odaMatch && adiMatch && soyadiMatch && identityNoMatch) {
-        logger.debug("Found match:", baseEntry, otherEntry);
+    if (odaMatch && adiMatch && soyadiMatch) {
+        if (identityNoMatch) {
+            logger.debug("Found match:", baseEntry, otherEntry);
+        } else {
+            logger.warn("Found match with different identityNos:", baseEntry, otherEntry);
+        }
         return true;
     }
     /*
