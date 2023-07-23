@@ -90,9 +90,13 @@ class List extends Component {
     render() {
         let trs = [];
         let text = <span />;
+        let stats = <span />;
         if (this.props.dataForKey) {
             /** @type {import('./common').AnalyzedGuestEntry[]} */
             const entries = this.props.dataForKey;
+            const entriesWithError = entries.filter(e => e.notInOther);
+            const entriesWithLightError = entriesWithError.filter(e => e.isEmptyCaravan || e.sameNameButDifferentRoomNoFound || e.sameRoomNoAndFirstNameFound || e.similarFound);
+            stats = <p>Toplam {entriesWithError.length} problemli kayıt. Onların arasında {entriesWithError.length - entriesWithLightError.length} düz kırmızı, {entriesWithLightError.length} diğer renk.</p>;
             text = <span>{`Listenin ${entries.length} kayıdı var!`}</span>;
             let key = 0;
             for (let entry of entries) {
@@ -135,6 +139,7 @@ class List extends Component {
         return <div className="holder" id={`${DATA_HOLDER_DIV_PREFIX}${this.props.sourceKey}`}>
             {text}
             {errorCodes}
+            {stats}
             <table>
                 <thead><tr>{ecth}<th>Oda No</th><th>Ad&#305;</th><th>Soyad&#305;</th><th>TC / Pasaport No</th><th>Giri&#351; tarihi</th></tr></thead>
                 <tbody>{trs}</tbody>
