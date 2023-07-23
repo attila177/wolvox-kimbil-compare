@@ -2,13 +2,15 @@
  * @typedef {Object} GuestEntryInput
  * @property {string} odaNo The room number
  * @property {string} adi The first name (with special characters)
- * @property {string} adi_simple The first name (without special characters)
+ * @property {string} adi_simple The first name (without special characters) (anonymized and with reduced number of stars)
  * @property {string} soyadi The last name (with special characters)
- * @property {string} soyadi_simple The last name (without special characters)
+ * @property {string} soyadi_simple The last name (without special characters) (anonymized and with reduced number of stars)
  * @property {string} giris A string representation of the date of arrival
  * @property {string} cikis A string representation of the date of departure
  * @property {string} gecerliBelge Warning! Will not be filled out in almost all Wolvox cases! Passport No of non-turkish citizens
+ * @property {string} gecerliBelge_simple Warning! Will not be filled out in almost all Wolvox cases! Passport No of non-turkish citizens
  * @property {string} kimlikNo TC No of turkish citizens
+ * @property {string} kimlikNo_simple TC No of turkish citizens (anonymized and with reduced number of stars)
  * @property {string} uyruk Nationality
  * @property {string} [not] Notes about the entry
  */
@@ -20,6 +22,7 @@
  * @property {boolean} isEmptyCaravan only true if wolvox entry && entry.not contains the words "bo" and "karavan"
  * @property {string} paddedOdaNo The room number, but with 0 added to the start
  * @property {string} identityNo Abstract unique ID derived either from _gecerliBelge_ or _kimlikNo_
+ * @property {string} identityNo_simple Abstract unique ID derived either from _gecerliBelge_simple_ or _kimlikNo_simple_
  */
 
 /**

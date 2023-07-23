@@ -25,67 +25,6 @@ const resemble = (s1, s2) => {
     return s1 === s2 || contains(s1, s2) || contains(s2, s1);
 };
 
-/** @param {string} input */
-const reduceStars = (input) => {
-    if (!input) {
-        return input;
-    }
-    return input.replace(/[*]+/g, '+')
-}
-
-
-/** @param {string} input */
-const mimicNameAnonymization = (input) => {
-    return input.split(' ').map(substr => substr.substring(0, 2)).join('***** ') + '*****';
-};
-
-/**
- * @param {string} input1 The first string of the comparison (will be called once for each of kimbil and wolvox)
- * @param {string} input2 The second string of the comparison (will be called once for each of kimbil and wolvox)
- */
-const resembleDespiteNameAnonymization = (input1, input2) => {
-    let s1;
-    let s2;
-    if (input1.includes('*') && !input2.includes('*')) {
-        s1 = reduceStars(input1);
-        s2 = reduceStars(mimicNameAnonymization(input2));
-    } else if (!input1.includes('*') && input2.includes('*')) {
-        s1 = reduceStars(mimicNameAnonymization(input1));
-        s2 = reduceStars(input2);
-    }
-    
-    return s1 === s2 || contains(s1, s2) || contains(s2, s1);
-};
-
-
-/** @param {string} input */
-const mimicIdentityNoAnonymization = (input) => {
-    if (input && input.length > 5) {
-        const anonStars = new Array(input.length - 4).join('*');
-        return `${input.substring(0,2)}${anonStars}${input.substring(input.length - 3)}`;
-    } else {
-        return input;
-    }
-};
-
-/**
- * @param {string} input1 The first string of the comparison (will be called once for each of kimbil and wolvox)
- * @param {string} input2 The second string of the comparison (will be called once for each of kimbil and wolvox)
- */
-const resembleDespiteIdentityNoAnonymization = (input1, input2) => {
-    let s1;
-    let s2;
-    if (input1.includes('*') && !input2.includes('*')) {
-        s1 = reduceStars(input1);
-        s2 = reduceStars(mimicIdentityNoAnonymization(input2));
-    } else if (!input1.includes('*') && input2.includes('*')) {
-        s1 = reduceStars(mimicIdentityNoAnonymization(input1));
-        s2 = reduceStars(input2);
-    }
-    
-    return s1 === s2 || contains(s1, s2) || contains(s2, s1);
-};
-
 /**
  * Warning: Wolvox does not contain identity nos of non-turkish guests
  * @param {GuestEntry} baseEntry
@@ -95,7 +34,7 @@ const identityMatch = (baseEntry, guestEntry) => {
     if (!baseEntry.isTurkishCitizen || !guestEntry.isTurkishCitizen) {
         return true;
     }
-    return resembleDespiteIdentityNoAnonymization(baseEntry.identityNo, guestEntry.identityNo);
+    return baseEntry.identityNo_simple === guestEntry.identityNo_simple;
 };
 
 /**
@@ -130,8 +69,8 @@ const numbersResemble = (s1, s2) => {
  */
 export const compareEntries = (baseEntry, otherEntry) => {
     const odaMatch = numbersResemble(baseEntry.odaNo, otherEntry.odaNo);
-    const adiMatch = resembleDespiteNameAnonymization(baseEntry.adi_simple, otherEntry.adi_simple);
-    const soyadiMatch = resembleDespiteNameAnonymization(baseEntry.soyadi_simple, otherEntry.soyadi_simple);
+    const adiMatch = resemble(baseEntry.adi_simple, otherEntry.adi_simple);
+    const soyadiMatch = resemble(baseEntry.soyadi_simple, otherEntry.soyadi_simple);
     const identityNoMatch = identityMatch(baseEntry, otherEntry);
     if (odaMatch && adiMatch && soyadiMatch) {
         if (identityNoMatch) {
@@ -220,7 +159,7 @@ const searchSimilarForOne = (fullData, key, otherKey) => {
                 for (let otherEntry of otherData) {
                     if (otherEntry.notInOther) {
                         // use levenshtein distance
-                        const distance = levDist(newEntry, otherEntry, 2);
+                        const distance = levDist(newEntry, otherEntry, 1);
                         if (!bestCandidate || distance < minDistance) {
                             bestCandidate = otherEntry;
                             minDistance = distance;
@@ -290,9 +229,9 @@ const contains = (container, contained) => {
  * Computes the levenshtein distance for two given entries' name fields, if the length difference
  * of the extracted strings is below given threshold. If not, the length of the longer string
  * is returned as the distance.
- * @param {object} sFull The first string
- * @param {object} tFull The second string
- * @param {number} maxLengthDifference The threshold for the computationo of the distance
+ * @param {GuestEntry} sFull The first entry
+ * @param {GuestEntry} tFull The second entry
+ * @param {number} maxLengthDifference The threshold for the computation of the distance
  */
 export const levDist = (sFull, tFull, maxLengthDifference) => {
     let s = sFull.adi_simple + sFull.soyadi_simple;

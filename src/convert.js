@@ -4,6 +4,7 @@ import { eventMaker } from './reducers/reducer';
 import { extractCsv } from './csv';
 import { logger } from './common';
 import FIELDS from './guest-data';
+import { mimicIdentityNoAnonymization, mimicNameAnonymization, reduceStars } from './emniyet-tools';
 
 /** @typedef {import('./common').DataSourceTypeKey} DataSourceTypeKey */
 /** @typedef {import('./common').GuestEntry} GuestEntry */
@@ -52,6 +53,23 @@ const getIdentityNo = (entry) => {
     }
 }
 
+/**
+ * @param {GuestEntry} entry 
+ */
+const getIdentityNoSimple = (entry) => {
+    if (!entry.uyruk) {
+      const guess = entry.kimlikNo_simple || entry.gecerliBelge_simple || ''; 
+      if (entry.kimlikNo_simple && entry.gecerliBelge_simple) {
+        logger.warn(`Guessing identity no (simple) ${guess} for`, entry);
+      }
+      return guess;
+    } else if (entry.uyruk === 'TÜRKİYE' || entry.uyruk === 'TC') {
+        return entry.kimlikNo_simple || '';
+    } else {
+        return entry.gecerliBelge_simple || '';
+    }
+}
+
 /** @param {string} inStr */
 const shortenDate = (inStr) => {
     if (!inStr) {
@@ -67,7 +85,7 @@ const shortenDate = (inStr) => {
  * @param {GuestEntryInput} param0
  * @returns {GuestEntry} The entry object
  */
-const toData = ({odaNo, adi, adi_simple, soyadi, soyadi_simple, giris, cikis, gecerliBelge, kimlikNo, uyruk, not}) => {
+const toData = ({odaNo, adi, adi_simple, soyadi, soyadi_simple, giris, cikis, gecerliBelge, gecerliBelge_simple, kimlikNo, kimlikNo_simple, uyruk, not}) => {
     const isValid = !!(adi && soyadi);
     /** @type {GuestEntry} */
     const stub = {
@@ -79,14 +97,17 @@ const toData = ({odaNo, adi, adi_simple, soyadi, soyadi_simple, giris, cikis, ge
         adi_simple,
         soyadi_simple,
         isValid,
+        gecerliBelge_simple,
         gecerliBelge,
         kimlikNo,
+        kimlikNo_simple,
         uyruk,
         not,
     };
     stub.isEmptyCaravan = isEmptyCaravan(stub);
     stub.isTurkishCitizen = isTurkishCitizen(stub);
     stub.identityNo = getIdentityNo(stub);
+    stub.identityNo_simple = getIdentityNoSimple(stub);
     return stub;
 };
 
@@ -281,16 +302,20 @@ export class DataConverter {
         const soyadi = line[this.indices.soyadi];
         const odaRaw = line[this.indices.odaNo];
         const odaNo = commonStringConvert(odaRaw + "");
+        const kimlikNo = commonStringConvert(line[this.indices.kimlikNo]);
+        const gecerliBelge = commonStringConvert(line[this.indices.gecerliBelge]);
         const result = toData({
             odaNo,
             adi: commonStringConvert(adi),
-            adi_simple: commonStringSimplify(adi),
+            adi_simple: reduceStars(commonStringSimplify(adi)),
             soyadi: commonStringConvert(soyadi),
-            soyadi_simple: commonStringSimplify(soyadi),
+            soyadi_simple: reduceStars(commonStringSimplify(soyadi)),
             giris: line[this.indices.giris],
             cikis: "-",
-            gecerliBelge: commonStringConvert(line[this.indices.gecerliBelge]),
-            kimlikNo: commonStringConvert(line[this.indices.kimlikNo]),
+            gecerliBelge,
+            gecerliBelge_simple: reduceStars(gecerliBelge),
+            kimlikNo,
+            kimlikNo_simple: reduceStars(kimlikNo),
             uyruk: commonStringConvert(line[this.indices.uyruk]),
             not: undefined,
         });
@@ -309,16 +334,20 @@ export class DataConverter {
         }
         const adi = line[this.indices.adi];
         const soyadi = line[this.indices.soyadi];
+        const kimlikNo = commonStringConvert(line[this.indices.kimlikNo]);
+        const gecerliBelge = commonStringConvert(line[this.indices.gecerliBelge]);
         const result = toData({
             odaNo: commonStringConvert(line[this.indices.odaNo] + ""),
             adi: commonStringConvert(adi),
-            adi_simple: commonStringSimplify(adi),
+            adi_simple: mimicNameAnonymization(commonStringSimplify(adi)),
             soyadi: commonStringConvert(soyadi),
-            soyadi_simple: commonStringSimplify(soyadi),
+            soyadi_simple: mimicNameAnonymization(commonStringSimplify(soyadi)),
             giris: commonStringConvert(line[this.indices.giris]),
             cikis: commonStringConvert(line[this.indices.cikis]),
-            gecerliBelge: commonStringConvert(line[this.indices.gecerliBelge]),
-            kimlikNo: commonStringConvert(line[this.indices.kimlikNo]),
+            gecerliBelge,
+            gecerliBelge_simple: mimicIdentityNoAnonymization(gecerliBelge),
+            kimlikNo,
+            kimlikNo_simple: mimicIdentityNoAnonymization(kimlikNo),
             uyruk: commonStringConvert(line[this.indices.uyruk]),
             not: commonStringConvert(line[this.indices.not]),
             });
