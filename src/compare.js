@@ -234,8 +234,13 @@ const contains = (container, contained) => {
  * @param {number} maxLengthDifference The threshold for the computation of the distance
  */
 export const levDist = (sFull, tFull, maxLengthDifference) => {
-    let s = sFull.adi_simple + sFull.soyadi_simple;
-    let t = tFull.adi_simple + tFull.soyadi_simple;
+    /** @param {GuestEntry} e  */
+    const reduce = (e) => {
+        const id = e.isTurkishCitizen ? e.kimlikNo_simple : '';
+        return sFull.adi_simple + sFull.soyadi_simple + id;
+    }
+    let s = reduce(sFull);
+    let t = reduce(tFull);
     let d = []; //2d matrix
 
     // Step 1
