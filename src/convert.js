@@ -140,7 +140,6 @@ const commonStringConvert = (s) => {
     if (!s) {
         return s;
     }
-    s = replaceAll(s, " ", "");
     s = replaceAll(s, "\r", "");
     s = replaceAll(s, "Ý", "İ");
     s = replaceAll(s, "Þ", "Ş");
