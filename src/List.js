@@ -75,7 +75,7 @@ class List extends Component {
     }
     styleSameNameButDifferentRoomNoFound(st) {
         if (this.props.printView) {
-            return {...st, 'font-weight': 'bold'}
+            return {...st, textDecoration: 'line-through'}
         } else {
             return {...st, backgroundColor: 'lightblue'}
         }
