@@ -262,6 +262,8 @@ export class DataConverter {
             this.dataMatrix = extractCsv(this.rawCsvContent);
             this.initializeIndices();
         }
+        /** @type {string[]} */
+        this.rawHeaderCells = [];
     }
 
     /**
@@ -273,8 +275,8 @@ export class DataConverter {
             logger.error('Error')
             return;
         }
-        const headerCells = this.dataMatrix[0]
-        headerCells.forEach((cellContent, index) => {
+        this.rawHeaderCells = this.dataMatrix[0]
+        this.rawHeaderCells.forEach((cellContent, index) => {
             const match = Object.keys(FIELDS).find((name) => {
                 return equalsOne(cellContent, ROW_HEADERS[this.dataSourceTypeKey][name])
             });
@@ -287,7 +289,7 @@ export class DataConverter {
         const requiredFieldsNames = Object.entries(FIELDS).filter(([_name, props]) => props.required).map(([name, _props]) => name);
         const missing = requiredFieldsNames.filter((name) => this.indices[name] === undefined);
         if (missing.length) {
-            throw new Error(`No index found for required rows ${missing} in ${headerCells}`);
+            throw new Error(`No index found for required rows ${missing} in ${this.rawHeaderCells}`);
         }
     }
 
@@ -403,23 +405,26 @@ export class DataConverter {
             this.validateFn(this.dataMatrix, this.printValidationErrorFunction, this.resetValidationErrorFunction);
             logger.debug(this.dataSourceTypeKey, "raw", this.dataMatrix);
             let isFirst = true;
-            for (let entry of this.dataMatrix) {
+            this.dataMatrix.forEach((entry, index) => {
                 if (isFirst) {
                     isFirst = false;
                     logger.debug("Skipping first", entry);
-                    continue;
+                    return;
                 }
                 if (entry.length < 2) {
                     logger.debug("Skipping empty", entry);
-                    continue;
+                    return;
+                }
+                if (entry.length < this.rawHeaderCells.length) {
+                    logger.warn(`Line ${index} only has ${entry.length} cells, but header line has ${this.rawHeaderCells.length}!`);
                 }
                 const compiled = this.toDataFunction(entry);
                 if(compiled.isValid) {
                     fullData.push(compiled);
                 } else {
-                    logger.warn(`[${this.dataSourceTypeKey}][room ${compiled.odaNo}] Not adding invalid line to data set: ${entry.join('; ')}`);
+                    logger.warn(`[${this.dataSourceTypeKey}][room ${compiled.odaNo}] Not adding invalid line ${index} to data set: ${entry.join('; ')}`);
                 }
-            }
+            })
             let maxOdaNoLength = 0;
             fullData.forEach(data => {
                 data.paddedOdaNo = data.odaNo;
