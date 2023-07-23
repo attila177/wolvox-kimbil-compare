@@ -2,8 +2,7 @@
 /** @param {string} input */
 export const mimicIdentityNoAnonymization = (input) => {
   if (input && input.length > 5) {
-      const anonStars = new Array(input.length - 4).join('*');
-      return `${input.substring(0,2)}${anonStars}${input.substring(input.length - 3)}`;
+      return `${input.substring(0,2)}*${input.substring(input.length - 3)}`;
   } else {
       return input;
   }
