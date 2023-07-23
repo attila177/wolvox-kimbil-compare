@@ -6,6 +6,8 @@ import { connect } from 'react-redux';
 import { compareAllCsvData } from './compare';
 import { DATA_SOURCE_TYPE_LABEL, KEY_CSV_KIMBIL, KEY_CSV_WOLVOX, logger } from './common';
 import { DataConverter } from './convert';
+import PropTypes from 'prop-types';
+import { getStatsForAllLists } from './stats';
 
 const VALIDATION_ERROR_HOLDER = "validation-error-holder";
 
@@ -29,6 +31,10 @@ const resetValidationError = (key) => {
 };
 
 class App extends Component {
+
+  static propTypes = {
+      data: PropTypes.object,
+  };
 
   constructor(props) {
     super();
@@ -79,12 +85,21 @@ class App extends Component {
         <span style={{ border: "3px dashed turquoise" }}>Wolvox'ta TC nosu eksik</span> &nbsp;
         <br />
     </span>
+    let stats = <span/>;
+    if (this.props.data && this.props.data[KEY_CSV_KIMBIL] && this.props.data[KEY_CSV_WOLVOX]) {
+      const fullStats = getStatsForAllLists(this.props.data);
+      stats = <span>
+        İki liste toplam müşteri sayıları arasında {fullStats.differenceGuestAmount} fark var.<br/>
+        "Düz kırmızı" hata oranı %{fullStats.hardErrorQuota}.
+      </span>
+    }
     return (
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
           <h1 className="App-title">Wolvox Kimbil Compare</h1>
         </header>
+        {stats}
         {sorunRenkleri}
         <div className="red" id={`${VALIDATION_ERROR_HOLDER}${KEY_CSV_WOLVOX}`}></div>
         <div className="red" id={`${VALIDATION_ERROR_HOLDER}${KEY_CSV_KIMBIL}`}></div>
@@ -110,7 +125,8 @@ class App extends Component {
 }
 
 const mapStateToProps = function (state, props) {
-  return {};
+  const result = { data: state.global }
+  return result;
 };
 
 const mapDispatchToProps = function (dispatch) {

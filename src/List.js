@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import { getStatsForOneList } from './stats';
 
 const DATA_HOLDER_DIV_PREFIX = "data-holder-";
 
@@ -94,9 +95,8 @@ class List extends Component {
         if (this.props.dataForKey) {
             /** @type {import('./common').AnalyzedGuestEntry[]} */
             const entries = this.props.dataForKey;
-            const entriesWithError = entries.filter(e => e.notInOther);
-            const entriesWithLightError = entriesWithError.filter(e => e.isEmptyCaravan || e.sameNameButDifferentRoomNoFound || e.sameRoomNoAndFirstNameFound || e.similarFound);
-            stats = <p>Toplam {entriesWithError.length} problemli kayıt. Onların arasında {entriesWithError.length - entriesWithLightError.length} düz kırmızı, {entriesWithLightError.length} diğer renk.</p>;
+            const statsForList = getStatsForOneList(entries);
+            stats = <p>Toplam {statsForList.entriesWithAnyError} problemli kayıt. Onların arasında {statsForList.entriesWithHardError} düz kırmızı, {statsForList.entriesWithLightError} diğer renk.</p>;
             text = <span>{`Listenin ${entries.length} kayıdı var!`}</span>;
             let key = 0;
             for (let entry of entries) {
