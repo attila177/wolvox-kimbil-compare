@@ -149,14 +149,33 @@ const searchSimilarForOne = (fullData, key, otherKey) => {
     let newData = [];
 
     if (baseData && otherData && baseData.length > 0 && otherData.length > 0) {
+
+        const errorEntriesInOtherData = otherData.find(e => e.notInOther) ? otherData.filter(e => e.notInOther) : otherData;
+
+        // check if there is entries with same name, same id, other room
         for (let baseEntry of baseData) {
             /** @type {AnalyzedGuestEntry} */
             let newEntry = baseEntry;
             if (baseEntry.notInOther) {
-                newEntry = { ...baseEntry };
+                const matchingFromOther = errorEntriesInOtherData.find(e =>
+                    resemble(e.adi_simple, baseEntry.adi_simple) &&
+                    resemble(e.soyadi_simple, baseEntry.soyadi_simple) &&
+                    (e.isTurkishCitizen ? resemble(e.kimlikNo_simple, baseEntry.kimlikNo_simple) : true)
+                )
+                if (matchingFromOther) {
+                    logger.log("Numbers do not match, but names are identical: mark as same name different room", newEntry, matchingFromOther);
+                    newEntry.sameNameButDifferentRoomNoFound = true;
+                }
+            }
+            newData.push(newEntry);
+        }
+
+        // check for similar entries using levenshtein
+        for (let newEntry of newData) {
+            if (newEntry.notInOther && !newEntry.sameNameButDifferentRoomNoFound) {
                 let bestCandidate = null;
-                let minDistance = 0;
-                for (let otherEntry of otherData) {
+                let minDistance = Number.MAX_SAFE_INTEGER;
+                for (let otherEntry of errorEntriesInOtherData) {
                     if (otherEntry.notInOther) {
                         // use levenshtein distance
                         const distance = levDist(newEntry, otherEntry, 1);
@@ -168,20 +187,15 @@ const searchSimilarForOne = (fullData, key, otherKey) => {
                 }
                 if (bestCandidate && minDistance < 3) {
                     logger.log("Found a similar entry with levenshtein to", newEntry, minDistance, bestCandidate);
-                    if (numbersResemble(baseEntry.odaNo, bestCandidate.odaNo)) {
+                    if (numbersResemble(newEntry.odaNo, bestCandidate.odaNo)) {
                         logger.log("Numbers resemble: mark as similar", newEntry, bestCandidate);
                         newEntry.similarFound = true;
-                    } else {
-                        if (minDistance === 0) {
-                            logger.log("Numbers do not resemble, but names are identical: mark as same name different room", newEntry, bestCandidate);
-                            newEntry.sameNameButDifferentRoomNoFound = true;
-                        }
                     }
                 } else {
                     logger.debug("Could not find a similar entry with levenshtein!");
                     newEntry.similarFound = false;
-                    for (let otherEntry of otherData) {
-                        if (otherEntry.notInOther && numbersResemble(baseEntry.odaNo, otherEntry.odaNo) && resemble(baseEntry.adi_simple, otherEntry.adi_simple)) {
+                    for (let otherEntry of errorEntriesInOtherData) {
+                        if (otherEntry.notInOther && numbersResemble(newEntry.odaNo, otherEntry.odaNo) && resemble(newEntry.adi_simple, otherEntry.adi_simple)) {
                             logger.log("Found a similar entry with roomNo & firstName to", newEntry, otherEntry);
                             newEntry.sameRoomNoAndFirstNameFound = true;
                             break;
@@ -189,7 +203,6 @@ const searchSimilarForOne = (fullData, key, otherKey) => {
                     }
                 }
             }
-            newData.push(newEntry);
         }
     } else {
         newData = baseData;
@@ -234,10 +247,10 @@ const contains = (container, contained) => {
  * @param {number} maxLengthDifference The threshold for the computation of the distance
  */
 export const levDist = (sFull, tFull, maxLengthDifference) => {
-    /** @param {GuestEntry} e  */
+    /** @param {GuestEntry} e */
     const reduce = (e) => {
         const id = e.isTurkishCitizen ? e.kimlikNo_simple : '';
-        return sFull.adi_simple + sFull.soyadi_simple + id;
+        return (e.adi_simple + e.soyadi_simple + id).replace(/[*]+/, '');
     }
     let s = reduce(sFull);
     let t = reduce(tFull);
@@ -291,5 +304,7 @@ export const levDist = (sFull, tFull, maxLengthDifference) => {
         }
     }
     // Step 7
-    return d[n][m];
+    const result = d[n][m];
+    logger.debug(`Levdist between _${s}_ and _${t}_ is ${result}.`);
+    return result;
 };
