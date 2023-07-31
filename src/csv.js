@@ -28,6 +28,9 @@ const countOccurences = (needle, haystack) => {
  * @return {number} the computed score. the higher, the better
  */
 const cellSeparatorScore = (lines, cellSeparator) => {
+    if (!cellSeparator) {
+        return Number.NEGATIVE_INFINITY;
+    }
     const amountMap = {};
     const amountList = [];
     for (let line of lines) {
@@ -54,7 +57,7 @@ const cellSeparatorScore = (lines, cellSeparator) => {
     });
     const prevalenceScore = keyWithHighestValue;
     const score = 10 * consistencyScore + prevalenceScore;
-    logger.debug("Cell separator", cellSeparator, "scored", score, "with", amounts, amountList);
+    logger.info("Cell separator", cellSeparator, "scored", score, "with", amounts, amountList);
     return score;
 }
 
