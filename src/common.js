@@ -21,6 +21,7 @@
  * @property {boolean} isTurkishCitizen
  * @property {boolean} isEmptyCaravan only true if wolvox entry && entry.not contains the words "bo" and "karavan"
  * @property {string} paddedOdaNo The room number, but with 0 added to the start
+ * @property {string} sortKey paddedOdaNo + soyadi_simple + adi_simple
  * @property {string} identityNo Abstract unique ID derived either from _gecerliBelge_ or _kimlikNo_
  * @property {string} identityNo_simple Abstract unique ID derived either from _gecerliBelge_simple_ or _kimlikNo_simple_
  */

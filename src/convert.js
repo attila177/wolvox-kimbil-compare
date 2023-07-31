@@ -16,10 +16,10 @@ const ROW_HEADERS = {
         odaNo: ['VerilenOda'],
         adi: ['Adi'],
         soyadi: ['Soyadi'],
-        giris: ['GelisTarihi'],
+        giris: ['GelisTarihi', 'IseGirisTarihi'],
         cikis: [],
         gecerliBelge: ['GecerliBelge'],
-        kimlikNo: ['KimlikNo'],
+        kimlikNo: ['KimlikNo', 'TcKimlikNo'],
         uyruk: ['UAdi'],
         not: []
     },
@@ -209,20 +209,6 @@ const kimbilCsvRawCsvValidationFunction = (lines, printValidationError, resetVal
 };
 
 /**
- * @param {string} needle 
- * @param {string[]} arrayOfHaystacks 
- * @return {boolean} whether the needle equals one of the haystacks
- */
-const equalsOne = (needle, arrayOfHaystacks) => {
-    for (let haystack of arrayOfHaystacks) {
-        if (needle === haystack) {
-            return true;
-        }
-    }
-    return false;
-}
-
-/**
  * Handles output to validation error field if row index is invalid.
  * @param {number} index The row index (result of detection algorithm)
  * @param {string} name The displayable name of the row
@@ -278,7 +264,8 @@ export class DataConverter {
         this.rawHeaderCells = this.dataMatrix[0]
         this.rawHeaderCells.forEach((cellContent, index) => {
             const match = Object.keys(FIELDS).find((name) => {
-                return equalsOne(cellContent, ROW_HEADERS[this.dataSourceTypeKey][name])
+                const candidates = ROW_HEADERS[this.dataSourceTypeKey][name];
+                return candidates.includes(cellContent);
             });
             if (match) {
                 this.indices[match] = index;
@@ -289,7 +276,7 @@ export class DataConverter {
         const requiredFieldsNames = Object.entries(FIELDS).filter(([_name, props]) => props.required).map(([name, _props]) => name);
         const missing = requiredFieldsNames.filter((name) => this.indices[name] === undefined);
         if (missing.length) {
-            throw new Error(`No index found for required rows ${missing} in ${this.rawHeaderCells}`);
+            throw new Error(`No index found for required ${this.dataSourceTypeKey} rows ${missing} in _${this.rawHeaderCells.join('_, _')}_`);
         }
     }
 
@@ -436,18 +423,10 @@ export class DataConverter {
                 while(maxOdaNoLength > data.paddedOdaNo.length) {
                     data.paddedOdaNo = `0${data.paddedOdaNo}`;
                 }
+                data.sortKey = `${data.paddedOdaNo}${data.soyadi_simple}${data.adi_simple}`
             });
             logger.debug(this.dataSourceTypeKey, "full", fullData);
-            fullData.sort((a, b) => {
-                // soyadi, adi
-                if (a.soyadi_simple === b.soyadi_simple && a.paddedOdaNo === b.paddedOdaNo) {
-                    return stringCompare(a.adi_simple, b.adi_simple);
-                }
-                if (a.paddedOdaNo === b.paddedOdaNo) {
-                    return stringCompare(a.soyadi_simple, b.soyadi_simple);
-                }
-                return stringCompare(a.paddedOdaNo, b.paddedOdaNo);
-            });
+            fullData.sort((a, b) => stringCompare(a.sortKey, b.sortKey));
             logger.debug(this.dataSourceTypeKey, "full sorted", fullData);
             that.props.dispatch(eventMaker(this.dataSourceTypeKey, fullData));
             return fullData;
