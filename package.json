@@ -34,8 +34,8 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test:continuous": "react-scripts test --env=jsdom",
-    "test:once": "react-scripts test --env=jsdom --watchAll=false --forceExit",
+    "test:watch": "react-scripts test --env=jsdom",
+    "test": "react-scripts test --env=jsdom --watchAll=false --forceExit",
     "eject": "react-scripts eject"
   },
   "homepage": "/wkc",

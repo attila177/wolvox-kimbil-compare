@@ -87,5 +87,5 @@ export const isTurkishCitizen = (entry) => {
 
 /** @param {GuestEntry} entry */
 export const isEmptyCaravan = (entry) => {
-    return entry.not && entry.not.toLowerCase().includes('bo') && entry.not.toLowerCase().includes('karavan');
+    return !!(entry.not && entry.not.toLowerCase().includes('bo') && entry.not.toLowerCase().includes('karavan'));
 }
