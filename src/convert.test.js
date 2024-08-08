@@ -175,4 +175,36 @@ describe('convert', () => {
     },
     ]);
   });
+
+  it('converts 2024 wolvox data', () => {
+    const inputWolvoxCsv = fs.readFileSync('./test/2024_wolvox.csv').toString();
+
+    const dataConverter = new DataConverter(voidFn, voidFn, KEY_CSV_WOLVOX, inputWolvoxCsv);
+    const resultWolvox = dataConverter.convertOneCsvData(that);
+
+    // expect(resultWolvox.length).toEqual(1);
+    expect(resultWolvox).toEqual([{
+      'adi': 'CANER',
+      'adi_simple': 'CA*',
+      'cikis': '11.08.2024',
+      'gecerliBelge': '',
+      'gecerliBelge_simple': '',
+      'giris': '4.08.',
+      'identityNo': '1234567890',
+      'identityNo_simple': '12*890',
+      'isEmptyCaravan': false,
+      'isTurkishCitizen': true,
+      'isValid': true,
+      'kimlikNo': '1234567890',
+      'kimlikNo_simple': '12*890',
+      'not': 'Çeki demiri dahil 6.14 cm Markası 4.30 GÜNLÜK ELEKTRİK',
+      'odaNo': '00042',
+      'paddedOdaNo': '00042',
+      'sortKey': '00042OR*CA*',
+      'soyadi': 'ORTACI',
+      'soyadi_simple': 'OR*',
+      'uyruk': 'TC',
+    }
+    ]);
+  });
 });

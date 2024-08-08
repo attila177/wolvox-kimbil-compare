@@ -360,6 +360,46 @@ export class DataConverter {
     };
 
     /**
+     * @param {string[][]} lines The raw csv lines
+     */
+    combineWolvoxCsvBrokenLines (lines) {
+        let acentaIndex = -1;
+        let rezNotIndex = -1;
+        lines[0].forEach((cell, cellIdx) => {
+             if(cell === 'Acenta') {
+                acentaIndex = cellIdx;
+             } else if(cell === 'Rez. Not 1') {
+                rezNotIndex = cellIdx;
+             }
+        });
+        if (acentaIndex === -1) {
+            console.warn('Could not find acenta index in wolvox csv!')
+            return;
+        }
+        if (rezNotIndex === -1) {
+            console.warn('Could not find acenta index in wolvox csv!')
+            return;
+        }
+        const indicesOfLinesToRemove = [];
+        for(let index = 1; index < lines.length; index++) {
+            const cells = lines[index];
+            if (!/^M.NFER.T$/.test(cells[acentaIndex])) {
+                indicesOfLinesToRemove.push(index);
+                const oldNote = lines[index-1][rezNotIndex];
+                const additionalNote = lines[index][0];
+                lines[index-1][rezNotIndex] = `${oldNote}${(oldNote && additionalNote) ? ' ' : ''}${additionalNote}`;
+                for (let offset = 1; offset < lines[index-1].length - rezNotIndex; offset++) {
+                    lines[index-1][rezNotIndex + offset] = lines[index][offset];
+                }
+            }
+        }
+        indicesOfLinesToRemove.reverse();
+        indicesOfLinesToRemove.forEach(index => {
+            lines.splice(index, 1);
+        });
+    };
+
+    /**
      * Validates raw csv input for wolvox csv, also handling validation error display.
      * @param {string[][]} lines The raw csv lines
      * @param {function} printValidationError The function for printing validation errors
@@ -377,6 +417,7 @@ export class DataConverter {
         if (!err) {
             resetValidationError(KEY_CSV_WOLVOX);
         }
+        this.combineWolvoxCsvBrokenLines(lines);
     };
 
     /**
