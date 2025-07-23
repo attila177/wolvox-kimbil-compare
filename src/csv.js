@@ -31,16 +31,19 @@ const cellSeparatorScore = (lines, cellSeparator) => {
     if (!cellSeparator) {
         return Number.NEGATIVE_INFINITY;
     }
+    /** @type {{[cellsInLine: string]: number}} */
     const amountMap = {};
     const amountList = [];
+    const lineOverview = [];
     for (let line of lines) {
         const count = countOccurences(cellSeparator, line);
-        if (amountMap[count]) {
-            amountMap[count]++;
+        if (amountMap["" + count]) {
+            amountMap["" + count]++;
         } else {
-            amountMap[count] = 1;
+            amountMap["" + count] = 1;
         }
         amountList.push(count);
+        lineOverview.push(`Line ${lineOverview.length + 1} (1-based) has ${count} cells`);
     }
     const amounts = Object.keys(amountMap);
     let consistencyScore = amounts.length;
@@ -48,6 +51,7 @@ const cellSeparatorScore = (lines, cellSeparator) => {
         consistencyScore = -1 * amounts.length;
     }
     let highestValue = Number.MIN_VALUE;
+    /** @type {string} */
     let keyWithHighestValue;
     Object.keys(amountMap).forEach((key) => {
         if(amountMap[key] > highestValue) {
@@ -55,9 +59,12 @@ const cellSeparatorScore = (lines, cellSeparator) => {
             keyWithHighestValue = key;
         }
     });
-    const prevalenceScore = keyWithHighestValue;
-    const score = 10 * consistencyScore + prevalenceScore;
-    logger.info("Cell separator", cellSeparator, "scored", score, "with", amounts, amountList);
+    const prevalenceScore = Number.parseFloat(keyWithHighestValue);
+    const punishmentForTooManyLinesWithZeroCells = (amountMap["" + 0] > (0.3 * lines.length)) ? -1000 : 0;
+    const score = 10 * consistencyScore + prevalenceScore + punishmentForTooManyLinesWithZeroCells;
+    logger.info("Cell separator", cellSeparator, "scored", score, ". The following cell amounts occur:", amounts,
+        ". punishmentForTooManyLinesWithZeroCells:", punishmentForTooManyLinesWithZeroCells,
+        ". Cell amounts map: ", JSON.stringify(amountMap), " Entirety of cell amounts list:", amountList, lineOverview);
     return score;
 }
 
