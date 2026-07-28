@@ -8,8 +8,9 @@ This webapp allows comparing csv exports of the Akinsoft "Wolvox" ERP system for
 * Entry with same name, but different room number found -> light blue
 
 # Features
-* Automatic detection of CSV cell separator character (v1.4.0)
-* Interface in turkish (v1.5.0)
-* Entries sorted by Oda No (v1.6.0)
-* Prepare for use with broken wolvox CSV files (v1.7.0)
+* Adapted to new format of kimbil csv as of 2026 july 22 (v3.0.0)
 * Add option to only display problematic list entries (v1.8.0)
+* Prepare for use with broken wolvox CSV files (v1.7.0)
+* Entries sorted by Oda No (v1.6.0)
+* Interface in turkish (v1.5.0)
+* Automatic detection of CSV cell separator character (v1.4.0)

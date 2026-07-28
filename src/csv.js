@@ -103,5 +103,6 @@ export const extractCsv = (rawFileContent) => {
         result.push(cells.map(cell => cell.trim()));
     }
     console.log(`Extracted matrix with ${result.length} lines. First line has ${result[0].length} cells`);
+    // console.log(`result ${JSON.stringify(result)}`);
     return result;
 };

@@ -13,6 +13,7 @@
  * @property {string} kimlikNo_simple TC No of turkish citizens (anonymized and with reduced number of stars)
  * @property {string} uyruk Nationality
  * @property {string} [not] Notes about the entry
+ * @property {string} [durum] Optional status of the entry. Kimbil nowadays adds "Aktif" (currently present and relevant) and "Pasif" (formerly present and neglectable)
  */
 
 /**

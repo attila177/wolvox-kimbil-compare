@@ -13,15 +13,16 @@ import { mimicIdentityNoAnonymization, mimicNameAnonymization, reduceStars } fro
 /** @type {{[typeKey: string]: {[keyKey: string]: string[]}}} */
 const ROW_HEADERS = {
     [KEY_CSV_KIMBIL]: {
-        odaNo: ['VerilenOda'],
-        adi: ['Adi'],
-        soyadi: ['Soyadi'],
-        giris: ['GelisTarihi', 'IseGirisTarihi'],
+        odaNo: ['Verilen Oda', 'VerilenOda'],
+        adi: ['Adý', 'Ad�', 'Adi'],
+        soyadi: ['Soyadý', 'Soyad�', 'Soyadi'],
+        giris: ['Geliþ Tarihi', 'Geli� Tarihi', 'GelisTarihi', 'IseGirisTarihi'],
         cikis: [],
-        gecerliBelge: ['GecerliBelge'],
-        kimlikNo: ['KimlikNo', 'TcKimlikNo'],
-        uyruk: ['UAdi'],
-        not: []
+        gecerliBelge: ['Geçerli Belge', 'Ge�erli Belge', 'GecerliBelge'],
+        kimlikNo: ['Tc Kimlik No', 'KimlikNo', 'TcKimlikNo'],
+        uyruk: ['Uyruðu', 'Uyru�u', 'UAdi'],
+        not: [],
+        durum: ['Durum']
     },
     [KEY_CSV_WOLVOX]: {
         odaNo: ['Oda No', 'OdaNo'],
@@ -32,7 +33,8 @@ const ROW_HEADERS = {
         gecerliBelge: ['H�viyet No', 'Hüviyet No', 'Hï¿½viyetNo'],
         kimlikNo: ['TC Kimlik No', 'TCKimlikNo'],
         uyruk: ['Uyruğu', 'Uyru�u', 'Uyruðu'],
-        not: ['Rez. Not 1']
+        not: ['Rez. Not 1'],
+        durum: []
     },
 }
 
@@ -85,8 +87,8 @@ const shortenDate = (inStr) => {
  * @param {GuestEntryInput} param0
  * @returns {GuestEntry} The entry object
  */
-const toData = ({odaNo, adi, adi_simple, soyadi, soyadi_simple, giris, cikis, gecerliBelge, gecerliBelge_simple, kimlikNo, kimlikNo_simple, uyruk, not}) => {
-    const isValid = !!(adi && soyadi);
+const toData = ({ odaNo, adi, adi_simple, soyadi, soyadi_simple, giris, cikis, gecerliBelge, gecerliBelge_simple, kimlikNo, kimlikNo_simple, uyruk, not, durum }) => {
+    const isValid = !!(adi && soyadi) && durum !== 'Pasif';
     /** @type {GuestEntry} */
     const stub = {
         odaNo,
@@ -103,6 +105,7 @@ const toData = ({odaNo, adi, adi_simple, soyadi, soyadi_simple, giris, cikis, ge
         kimlikNo_simple,
         uyruk,
         not,
+        durum,
     };
     stub.isEmptyCaravan = isEmptyCaravan(stub);
     stub.isTurkishCitizen = isTurkishCitizen(stub);
@@ -195,12 +198,12 @@ const kimbilCsvRawCsvValidationFunction = (lines, printValidationError, resetVal
     // console.log("Validating kimbil raw csv", lines);
     let err = false;
     resetValidationError(KEY_CSV_KIMBIL);
-    if (lines[0][0] !== "Adi") {
-        printValidationError(KEY_CSV_KIMBIL, `CSV file uploaded for kimbil is not valid: First row should be 'Adi', but is '${lines[0][0]}'!!`);
+    if (lines[0][0] !== "Tc Kimlik No") {
+        printValidationError(KEY_CSV_KIMBIL, `CSV file uploaded for kimbil is not valid: First row should be 'Tc Kimlik No', but is '${lines[0][0]}'!!`);
         err = true;
     }
-    if (lines[0].length !== 9) {
-        printValidationError(KEY_CSV_KIMBIL, `CSV file uploaded for kimbil is not valid: There should be 9 columns, but there are ${lines[0].length}!`);
+    if (lines[0].length !== 11) {
+        printValidationError(KEY_CSV_KIMBIL, `CSV file uploaded for kimbil is not valid: There should be 11 columns, but there are ${lines[0].length}!`);
         err = true;
     }
     if (!err) {
@@ -269,14 +272,15 @@ export class DataConverter {
             });
             if (match) {
                 this.indices[match] = index;
+                // logger.log("found matching rowHeader for", cellContent, 'in', this.dataSourceTypeKey);
             } else {
-                // logger.log("could not find matching rowHeader for", cellContent, 'in', this.dataSourceTypeKey);
+                // logger.warn("could not find matching rowHeader for", cellContent, 'in', this.dataSourceTypeKey);
             }
         });
         const requiredFieldsNames = Object.entries(FIELDS).filter(([_name, props]) => props.required).map(([name, _props]) => name);
         const missing = requiredFieldsNames.filter((name) => this.indices[name] === undefined);
         if (missing.length) {
-            throw new Error(`No index found for required ${this.dataSourceTypeKey} rows ${missing} in _${this.rawHeaderCells.join('_, _')}_`);
+            throw new Error(`No index found for required ${this.dataSourceTypeKey} rows ${missing} in _${this.rawHeaderCells.join('_, _')}_, indices: ${JSON.stringify(this.indices)}`);
         }
     }
 
@@ -292,6 +296,8 @@ export class DataConverter {
         const odaNo = commonStringConvert(odaRaw + "");
         const kimlikNo = commonStringConvert(line[this.indices.kimlikNo]);
         const gecerliBelge = commonStringConvert(line[this.indices.gecerliBelge]);
+        const not = line[this.indices.not];
+        const durum = line[this.indices.durum];
         const result = toData({
             odaNo,
             adi: commonStringConvert(adi),
@@ -305,7 +311,8 @@ export class DataConverter {
             kimlikNo,
             kimlikNo_simple: reduceStars(kimlikNo),
             uyruk: commonStringConvert(line[this.indices.uyruk]),
-            not: undefined,
+            not,
+            durum,
         });
         logger.debug("kimbil to data", result);
         return result;

@@ -12,6 +12,7 @@ const FIELDS = {
   'kimlikNo': {required: true},
   'uyruk': {required: true},
   'not': {required: false},
+  'durum': { required: false },
 }
 
 export default FIELDS;
