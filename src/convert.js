@@ -202,8 +202,8 @@ const kimbilCsvRawCsvValidationFunction = (lines, printValidationError, resetVal
         printValidationError(KEY_CSV_KIMBIL, `CSV file uploaded for kimbil is not valid: First row should be 'Tc Kimlik No', but is '${lines[0][0]}'!!`);
         err = true;
     }
-    if (lines[0].length !== 11) {
-        printValidationError(KEY_CSV_KIMBIL, `CSV file uploaded for kimbil is not valid: There should be 11 columns, but there are ${lines[0].length}!`);
+    if (lines[0].length < 8 || lines[0].length > 11) {
+        printValidationError(KEY_CSV_KIMBIL, `CSV file uploaded for kimbil is not valid: There should be 8 to 11 columns, but there are ${lines[0].length}!`);
         err = true;
     }
     if (!err) {
